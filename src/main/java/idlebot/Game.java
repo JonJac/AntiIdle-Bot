@@ -25,6 +25,10 @@ public class Game {
         }
     }
 
+    public BufferedImage screenShot(Rectangle rectangle) throws IOException {
+        return robot.createScreenCapture(new Rectangle(antiIdleRect.x + rectangle.x, antiIdleRect.y + rectangle.y,rectangle.width,rectangle.height));
+    }
+
     public void screenshotGame(String filename) throws IOException {
         BufferedImage image = robot.createScreenCapture(antiIdleRect);
         ImageIO.write(image, "bmp", new File(filename));

@@ -15,6 +15,7 @@ import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
 import idlebot.arcade.whackagreg.WhackAGregConstants;
+import idlebot.botton.ButtonPlayer;
 import ml.GregClassifier;
 import org.datavec.image.loader.NativeImageLoader;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
@@ -25,20 +26,16 @@ import org.nd4j.linalg.factory.Nd4j;
 import javax.imageio.ImageIO;
 
 public class IdleBotMain {
-
-
     public static void main(String[] args) throws AWTException, IOException, InterruptedException {
         Rectangle antiIdleRect = getWindowForProcess("Adobe Flash Player 9");
 
         System.out.println("AntiIdleRect: " + antiIdleRect);
         Game game = new Game(antiIdleRect);
+        game.clickWithinGame(10,34); //click so there is something to screenshot
         game.screenshotGame("test.bmp");
 
-
-    }
-
-    private static void playAGameOfBalance(){
-
+        ButtonPlayer player = new ButtonPlayer(game);
+        player.play();
     }
 
     public static Rectangle getWindowForProcess(String windowName) {

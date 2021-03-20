@@ -18,6 +18,8 @@ public class BalancePlayer {
     public void playBalance(){
         clickStart();
         //Problem: How to determine what the unknown sqaure was?
+
+
     }
 
     private void clickStart() {

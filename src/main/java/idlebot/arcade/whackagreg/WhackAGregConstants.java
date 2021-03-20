@@ -12,5 +12,4 @@ public class WhackAGregConstants {
 
     public static int BEGIN_GAME_BUTTON_X = 70;
     public static int BEGIN_GAME_BUTTON_Y = 375;
-
 }
