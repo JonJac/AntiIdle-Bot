@@ -10,4 +10,7 @@ public class WhackAGregConstants {
     public static int SQUARE_X_AMOUNT = 12;
     public static int SQUARE_Y_AMOUNT = 6;
 
+    public static int BEGIN_GAME_BUTTON_X = 70;
+    public static int BEGIN_GAME_BUTTON_Y = 375;
+
 }

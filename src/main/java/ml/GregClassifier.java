@@ -61,7 +61,7 @@ public class GregClassifier {
 
         MultiLayerNetwork model = buildModel(dataSetIterator);
 
-        model.save(new File("model2.lol"));
+        model.save(new File("greg.model"));
 
     }
 
