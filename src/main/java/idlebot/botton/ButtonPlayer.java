@@ -19,7 +19,6 @@ public class ButtonPlayer {
     static final double TOL = 0.0000001;
 
     private Game game;
-    private int pointEachWay = 20;
 
     public ButtonPlayer(Game game) {
         this.game = game;
@@ -28,57 +27,96 @@ public class ButtonPlayer {
     public void play() throws IOException {
         BufferedImage buttonScreenshot = game.screenShot(CIRCLE_AREA);
         //ImageIO.write(buttonScreenshot, "bmp", new File("button.bmp"));
+        Point[] lastClicks = new Point[10];
 
-        for (int i = 0; i < 5000; i++) {
+        for (int k = 0; k < 15000; k++) {
             buttonScreenshot = game.screenShot(CIRCLE_AREA);
             Point point = getCircleCenter(buttonScreenshot);
-            if (point.x > CIRCLE_AREA_X && point.x < CIRCLE_AREA_X + CIRCLE_AREA_WIDTH && point.y > CIRCLE_AREA_Y && point.y < CIRCLE_AREA_Y + CIRCLE_AREA_HEIGHT) {
-                game.clickWithinGame(point.x, point.y);
+            if (point.x > CIRCLE_AREA_X && point.x <= CIRCLE_AREA_X + CIRCLE_AREA_WIDTH && point.y > CIRCLE_AREA_Y && point.y <= CIRCLE_AREA_Y + CIRCLE_AREA_HEIGHT + 2) {//not sure why +2 :P Maybe rounding
+
+                if (goingLeft(lastClicks)) {
+                    game.clickWithinGame(point.x - 1, point.y + 1);
+                    //game.clickWithinGame(point.x - 1, point.y + 1);
+                } else {
+                    game.clickWithinGame(point.x + 2, point.y + 1);
+                    //game.clickWithinGame(point.x + 2, point.y + 1);
+                }
+
+                for (int i = lastClicks.length - 1; i > 0; i--) {
+                    Point lastClick = lastClicks[i - 1];
+                    lastClicks[i] = lastClick;
+                }
+
+                lastClicks[0] = point;
+
+                if (allElementsAreTheSame(lastClicks)) {
+                    System.out.println("button broken: " + Arrays.toString(lastClicks));
+                    break;
+                }
             } else {
+                if (point.x > CIRCLE_AREA_X && point.x <= CIRCLE_AREA_X + CIRCLE_AREA_WIDTH && point.y > CIRCLE_AREA_Y && point.y <= CIRCLE_AREA_Y + CIRCLE_AREA_HEIGHT + 3) {
+                    System.out.println("false point: " + point);
+                }
                 System.out.println("false point: " + point);
+                break;
                 //ImageIO.write(buttonScreenshot, "bmp", new File("images/buttonBug" + i + ".bmp"));
             }
         }
 
-        //BufferedImage bufferedImage = replace(buttonScreenshot);
-        //ImageIO.write(bufferedImage, "bmp", new File("button2.bmp"));
+        System.out.println("loop done");
+    }
+
+    private boolean allElementsAreTheSame(Point[] lastClicks) {
+        Point lastClick = lastClicks[0];
+        for (int i = 1; i < lastClicks.length - 1; i++){
+            if(!lastClick.equals(lastClicks[i])){
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean goingLeft(Point[] lastClicks) {
+        if (lastClicks[lastClicks.length - 1] == null) {
+            return false;
+        }
+        return lastClicks[0].x < lastClicks[lastClicks.length - 1].x;
     }
 
     private Point getCircleCenter(BufferedImage buttonScreenshot) throws IOException {
         ArrayList<Point> pointList = new ArrayList<>();
 
         int color;
-        outer:
+        int bottom = buttonScreenshot.getHeight() - 1;
+
         for (int i = 0; i < buttonScreenshot.getWidth(); i++) {
-            for (int j = 0; j < buttonScreenshot.getHeight(); j++) {
-                color = buttonScreenshot.getRGB(i, j);
-                if (color == 0xFF990000) { //red circle border
-                    pointList.add(new Point(CIRCLE_AREA.x + i, CIRCLE_AREA.y + j));
-                    if (pointList.size() >= pointEachWay) {
-                        break outer;
-                    }
-                }
+            color = buttonScreenshot.getRGB(i, bottom);
+            if (color == 0xFF990000) { //red circle border
+                pointList.add(new Point(CIRCLE_AREA.x + i, CIRCLE_AREA.y + bottom));
+                break;
+            }
+        }
+
+        for (int i = buttonScreenshot.getWidth() - 1; i > 0; i--) {
+            color = buttonScreenshot.getRGB(i, bottom);
+            if (color == 0xFF990000) { //red circle border
+                pointList.add(new Point(CIRCLE_AREA.x + i, CIRCLE_AREA.y + bottom));
+                break;
             }
         }
 
         outer:
-        for (int i = buttonScreenshot.getWidth() - 1; i > 0; i--) {
-            for (int j = buttonScreenshot.getHeight() - 1; j > 0; j--) {
-                color = buttonScreenshot.getRGB(i, j);
+        for (int y = 0; y < buttonScreenshot.getHeight(); y++) {
+            for (int x = 0; x < buttonScreenshot.getWidth(); x++) {
+                color = buttonScreenshot.getRGB(x, y);
                 if (color == 0xFF990000) { //red circle border
-                    pointList.add(new Point(CIRCLE_AREA.x + i, CIRCLE_AREA.y + j));
-                    if (pointList.size() >= pointEachWay) {
+                    pointList.add(new Point(CIRCLE_AREA.x + x, CIRCLE_AREA.y + y));
                         break outer;
-                    }
                 }
             }
         }
 
-        //Does not work
-        if (pointList.size() > 400) {
-            //System.out.println("Button broke");
-            throw new RuntimeException("Button broke");
-        }
 
         if (pointList.size() < 3) {
             System.out.println("Oh shit");
@@ -87,32 +125,14 @@ public class ButtonPlayer {
             //throw new RuntimeException("Button broke");
         }
 
-        ArrayList<Point> centerList = new ArrayList<>();
-        while (true) {
-            try {
-                Collections.shuffle(pointList);
-                Point point = circleFromPoints(pointList.get(0), pointList.get(1), pointList.get(2));
-                centerList.add(point);
-                if (centerList.size() >= 10) {
-                    //System.out.println(centerList);
-                    Map<Integer, Integer> xMap = new HashMap<>();
-                    Map<Integer, Integer> yMap = new HashMap<>();
-                    for (Point point1 : centerList) {
-                        xMap.computeIfPresent(point1.x, (key, val) -> val + 1);
-                        xMap.putIfAbsent(point1.x, 1);
 
-                        yMap.computeIfPresent(point1.y, (key, val) -> val + 1);
-                        yMap.putIfAbsent(point1.y, 1);
-                    }
-
-                    Integer bestX = maxUsingIteration(xMap);
-                    Integer bestY = maxUsingIteration(yMap);
-
-                    return new Point(bestX, bestY);
-                }
-            } catch (IllegalArgumentException e) {
-                System.out.println("unlucky points. Fix :P");
-            }
+        try {
+            Point point = circleFromPoints(pointList.get(0), pointList.get(1), pointList.get(2));
+            return point;
+        } catch (IllegalArgumentException e) {
+            ImageIO.write(buttonScreenshot, "bmp", new File("images/buttonBug" + UUID.randomUUID() + ".bmp"));
+            System.out.println(pointList);
+            return new Point(10, 34); //click top left corner
         }
     }
 

@@ -3,6 +3,7 @@ package idlebot;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -18,10 +19,32 @@ public class Game {
     }
 
     public void clickWithinGame(int x, int y) {
+        if(x < 9 || y < 33){
+            System.out.println("it was attempted to click outside of game. x=" + x +", y=" + y);
+            return;
+        }
         synchronized (lock) {
             robot.mouseMove(antiIdleRect.x + x, antiIdleRect.y +y);
             robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
             robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+        }
+    }
+
+    public void holdShiftDown(){
+        robot.keyPress(KeyEvent.VK_SHIFT);
+    }
+
+    public void releaseShift(){
+        robot.keyRelease(KeyEvent.VK_SHIFT);
+    }
+
+    public void moveMouseWithinGame(int x, int y) {
+        if(x < 9 || y < 33){
+            System.out.println("it was attempted to click outside of game. x=" + x +", y=" + y);
+            return;
+        }
+        synchronized (lock) {
+            robot.mouseMove(antiIdleRect.x + x, antiIdleRect.y +y);
         }
     }
 

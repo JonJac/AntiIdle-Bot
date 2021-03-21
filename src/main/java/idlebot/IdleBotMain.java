@@ -15,6 +15,7 @@ import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
 import idlebot.arcade.whackagreg.WhackAGregConstants;
+import idlebot.arcade.whackagreg.WhackAGregPlayer;
 import idlebot.botton.ButtonPlayer;
 import ml.GregClassifier;
 import org.datavec.image.loader.NativeImageLoader;
@@ -26,6 +27,8 @@ import org.nd4j.linalg.factory.Nd4j;
 import javax.imageio.ImageIO;
 
 public class IdleBotMain {
+    private static int expectedWidth = 669;
+    private static int expectedHeight = 709;
     public static void main(String[] args) throws AWTException, IOException, InterruptedException {
         Rectangle antiIdleRect = getWindowForProcess("Adobe Flash Player 9");
 
@@ -36,6 +39,9 @@ public class IdleBotMain {
 
         ButtonPlayer player = new ButtonPlayer(game);
         player.play();
+
+        WhackAGregPlayer whackAGregPlayer = new WhackAGregPlayer(game);
+        //whackAGregPlayer.playAGameOfGreg(antiIdleRect);
     }
 
     public static Rectangle getWindowForProcess(String windowName) {
@@ -50,6 +56,10 @@ public class IdleBotMain {
                 if (wText.equals(windowName)) {
                     try {
                         Rectangle rect1 = getRect(wText);
+                        if(rect1.width != expectedWidth || rect1.height != expectedHeight){
+                            System.out.println("Found flashplayer but width and height were wrong.");
+                            return false;
+                        }
                         rect.setBounds(rect1.x, rect1.y, rect1.width, rect1.height);
                         System.out.printf("The corner locations for the window \"%s\" are %s", wText, rect1);
                     } catch (LoopWindowsPOC.WindowNotFoundException | LoopWindowsPOC.GetWindowRectException e) {
