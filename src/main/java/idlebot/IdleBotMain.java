@@ -14,6 +14,7 @@ import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
+import idlebot.arcade.balance.BalancePlayer;
 import idlebot.arcade.whackagreg.WhackAGregConstants;
 import idlebot.arcade.whackagreg.WhackAGregPlayer;
 import idlebot.botton.ButtonPlayer;
@@ -34,14 +35,22 @@ public class IdleBotMain {
 
         System.out.println("AntiIdleRect: " + antiIdleRect);
         Game game = new Game(antiIdleRect);
-        game.clickWithinGame(10,34); //click so there is something to screenshot
+        game.clickWithinGame(10, 34); //click so there is something to screenshot
         game.screenshotGame("test.bmp");
 
         ButtonPlayer player = new ButtonPlayer(game);
-        player.play();
+        //player.play();
 
         WhackAGregPlayer whackAGregPlayer = new WhackAGregPlayer(game);
-        //whackAGregPlayer.playAGameOfGreg(antiIdleRect);
+        whackAGregPlayer.playAGameOfGreg(antiIdleRect);
+
+        BalancePlayer balancePlayer = new BalancePlayer(game);
+        for (int i = 0; i < 0; i++) {
+            balancePlayer.playBalance();
+            game.clickWithinGame(252, 391);
+            game.waitMs(20);
+        }
+
     }
 
     public static Rectangle getWindowForProcess(String windowName) {
@@ -58,7 +67,7 @@ public class IdleBotMain {
                         Rectangle rect1 = getRect(wText);
                         if(rect1.width != expectedWidth || rect1.height != expectedHeight){
                             System.out.println("Found flashplayer but width and height were wrong.");
-                            return false;
+                            //return true;
                         }
                         rect.setBounds(rect1.x, rect1.y, rect1.width, rect1.height);
                         System.out.printf("The corner locations for the window \"%s\" are %s", wText, rect1);

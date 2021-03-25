@@ -29,7 +29,7 @@ public class WhackAGregPlayer {
     private Robot robot;
     private Map<Rectangle, Long> lastClickedMap = new ConcurrentHashMap<>();
     private final int timeSinceLastClickMs = 500;
-    private int maxClick = 200;
+    private int maxClick = 20000;
     private Game game;
 
     public WhackAGregPlayer(Game game) {

@@ -17,6 +17,9 @@ import static idlebot.botton.ButtonConstants.*;
 
 public class ButtonPlayer {
     static final double TOL = 0.0000001;
+    static final int maxPerfectsInARow = 15;
+    static final int scoreThings = 15000;
+
 
     private Game game;
 
@@ -27,49 +30,63 @@ public class ButtonPlayer {
     public void play() throws IOException {
         BufferedImage buttonScreenshot = game.screenShot(CIRCLE_AREA);
         //ImageIO.write(buttonScreenshot, "bmp", new File("button.bmp"));
-        Point[] lastClicks = new Point[10];
+        Point[] lastClicks = new Point[20];
 
-        for (int k = 0; k < 15000; k++) {
+        //game.holdShiftDown();
+        int potentialPerfectsInARow = 0;
+        int clicksInARow = 0;
+
+        for (int k = 0; k < 50000; k++) {
             buttonScreenshot = game.screenShot(CIRCLE_AREA);
             Point point = getCircleCenter(buttonScreenshot);
-            if (point.x > CIRCLE_AREA_X && point.x <= CIRCLE_AREA_X + CIRCLE_AREA_WIDTH && point.y > CIRCLE_AREA_Y && point.y <= CIRCLE_AREA_Y + CIRCLE_AREA_HEIGHT + 2) {//not sure why +2 :P Maybe rounding
-
-                if (goingLeft(lastClicks)) {
+            if (legalPoint(point)) {//not sure why +2 :P Maybe rounding
+                if (potentialPerfectsInARow >= maxPerfectsInARow - 1) {
+                    game.clickWithinGame(point.x - 2, point.y + 2); //avoid perfect click
+                    potentialPerfectsInARow = 0;
+                } else if (goingLeft(lastClicks)) {
+                    //game.moveMouseWithinGame(point.x - 1, point.y + 1);
                     game.clickWithinGame(point.x - 1, point.y + 1);
-                    //game.clickWithinGame(point.x - 1, point.y + 1);
                 } else {
+                    //game.moveMouseWithinGame(point.x + 2, point.y + 1);
                     game.clickWithinGame(point.x + 2, point.y + 1);
-                    //game.clickWithinGame(point.x + 2, point.y + 1);
                 }
 
-                for (int i = lastClicks.length - 1; i > 0; i--) {
-                    Point lastClick = lastClicks[i - 1];
-                    lastClicks[i] = lastClick;
-                }
+                System.arraycopy(lastClicks, 0, lastClicks, 1, lastClicks.length - 1);
 
+                potentialPerfectsInARow++;
+                clicksInARow++;
                 lastClicks[0] = point;
 
                 if (allElementsAreTheSame(lastClicks)) {
                     System.out.println("button broken: " + Arrays.toString(lastClicks));
-                    break;
+                    //break;
                 }
             } else {
-                if (point.x > CIRCLE_AREA_X && point.x <= CIRCLE_AREA_X + CIRCLE_AREA_WIDTH && point.y > CIRCLE_AREA_Y && point.y <= CIRCLE_AREA_Y + CIRCLE_AREA_HEIGHT + 3) {
-                    System.out.println("false point: " + point);
-                }
                 System.out.println("false point: " + point);
-                break;
+                //break;
                 //ImageIO.write(buttonScreenshot, "bmp", new File("images/buttonBug" + i + ".bmp"));
             }
+
+            if (clicksInARow > scoreThings) {
+                game.clickWithinGame(98, 451);//repair
+                clicksInARow = 0;
+            }
         }
+
+        //game.releaseShift();
 
         System.out.println("loop done");
     }
 
+    private boolean legalPoint(Point point) {
+        return (point.x > CIRCLE_AREA_X && point.x <= CIRCLE_AREA_X + CIRCLE_AREA_WIDTH && point.y > CIRCLE_AREA_Y && point.y <= CIRCLE_AREA_Y + CIRCLE_AREA_HEIGHT + 2)
+                || (point.x == 98 && point.y == 451);
+    }
+
     private boolean allElementsAreTheSame(Point[] lastClicks) {
         Point lastClick = lastClicks[0];
-        for (int i = 1; i < lastClicks.length - 1; i++){
-            if(!lastClick.equals(lastClicks[i])){
+        for (int i = 1; i < lastClicks.length - 1; i++) {
+            if (!lastClick.equals(lastClicks[i])) {
                 return false;
             }
         }
@@ -92,7 +109,7 @@ public class ButtonPlayer {
 
         for (int i = 0; i < buttonScreenshot.getWidth(); i++) {
             color = buttonScreenshot.getRGB(i, bottom);
-            if (color == 0xFF990000) { //red circle border
+            if (color == 0xFF990000 || color == 0xFF000099) { //red circle border
                 pointList.add(new Point(CIRCLE_AREA.x + i, CIRCLE_AREA.y + bottom));
                 break;
             }
@@ -100,7 +117,7 @@ public class ButtonPlayer {
 
         for (int i = buttonScreenshot.getWidth() - 1; i > 0; i--) {
             color = buttonScreenshot.getRGB(i, bottom);
-            if (color == 0xFF990000) { //red circle border
+            if (color == 0xFF990000 || color == 0xFF000099) { //red circle border
                 pointList.add(new Point(CIRCLE_AREA.x + i, CIRCLE_AREA.y + bottom));
                 break;
             }
@@ -110,9 +127,9 @@ public class ButtonPlayer {
         for (int y = 0; y < buttonScreenshot.getHeight(); y++) {
             for (int x = 0; x < buttonScreenshot.getWidth(); x++) {
                 color = buttonScreenshot.getRGB(x, y);
-                if (color == 0xFF990000) { //red circle border
+                if (color == 0xFF990000 || color == 0xFF000099) { //red circle border
                     pointList.add(new Point(CIRCLE_AREA.x + x, CIRCLE_AREA.y + y));
-                        break outer;
+                    break outer;
                 }
             }
         }
@@ -121,10 +138,13 @@ public class ButtonPlayer {
         if (pointList.size() < 3) {
             System.out.println("Oh shit");
             ImageIO.write(buttonScreenshot, "bmp", new File("images/buttonBug" + UUID.randomUUID() + ".bmp"));
-            return new Point(10, 34); //click top left corner
-            //throw new RuntimeException("Button broke");
+            //return new Point(10, 34); //click top left corner
+            throw new RuntimeException("No circle found");
         }
 
+        if (pointList.get(1).x - pointList.get(0).x > CIRCLE_RADIUS * 2 + 5) {
+            return new Point(98, 451); //repair
+        }
 
         try {
             Point point = circleFromPoints(pointList.get(0), pointList.get(1), pointList.get(2));
@@ -134,17 +154,6 @@ public class ButtonPlayer {
             System.out.println(pointList);
             return new Point(10, 34); //click top left corner
         }
-    }
-
-    public <K, V extends Comparable<V>> K maxUsingIteration(Map<K, V> map) {
-        Map.Entry<K, V> maxEntry = null;
-        for (Map.Entry<K, V> entry : map.entrySet()) {
-            if (maxEntry == null || entry.getValue()
-                    .compareTo(maxEntry.getValue()) > 0) {
-                maxEntry = entry;
-            }
-        }
-        return maxEntry.getKey();
     }
 
     public static Point circleFromPoints(final Point p1, final Point p2, final Point p3) {
