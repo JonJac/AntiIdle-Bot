@@ -6,9 +6,6 @@ import javax.imageio.ImageIO;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.DirectColorModel;
-import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -17,8 +14,8 @@ import static idlebot.botton.ButtonConstants.*;
 
 public class ButtonPlayer {
     static final double TOL = 0.0000001;
-    static final int maxPerfectsInARow = 15;
-    static final int scoreThings = 15000;
+    static final int maxPerfectsInARow = 6;
+    private static int clickRegistryFactor = 10; //not all clicks are registered by the flash programme
 
 
     private Game game;
@@ -28,15 +25,16 @@ public class ButtonPlayer {
     }
 
     public void play() throws IOException {
-        BufferedImage buttonScreenshot = game.screenShot(CIRCLE_AREA);
-        //ImageIO.write(buttonScreenshot, "bmp", new File("button.bmp"));
+        shopMultiplersAndRewards();
+        clickTimes(2000);
+    }
+
+    private void clickTimes(int clicks) throws IOException {
         Point[] lastClicks = new Point[20];
-
-        //game.holdShiftDown();
+        BufferedImage buttonScreenshot;
         int potentialPerfectsInARow = 0;
-        int clicksInARow = 0;
 
-        for (int k = 0; k < 50000; k++) {
+        for (int k = 0; k < clicks * clickRegistryFactor; k++) { //Game does not r
             buttonScreenshot = game.screenShot(CIRCLE_AREA);
             Point point = getCircleCenter(buttonScreenshot);
             if (legalPoint(point)) {//not sure why +2 :P Maybe rounding
@@ -44,38 +42,48 @@ public class ButtonPlayer {
                     game.clickWithinGame(point.x - 2, point.y + 2); //avoid perfect click
                     potentialPerfectsInARow = 0;
                 } else if (goingLeft(lastClicks)) {
-                    //game.moveMouseWithinGame(point.x - 1, point.y + 1);
                     game.clickWithinGame(point.x - 1, point.y + 1);
                 } else {
-                    //game.moveMouseWithinGame(point.x + 2, point.y + 1);
                     game.clickWithinGame(point.x + 2, point.y + 1);
                 }
 
                 System.arraycopy(lastClicks, 0, lastClicks, 1, lastClicks.length - 1);
 
                 potentialPerfectsInARow++;
-                clicksInARow++;
                 lastClicks[0] = point;
 
                 if (allElementsAreTheSame(lastClicks)) {
                     System.out.println("button broken: " + Arrays.toString(lastClicks));
-                    //break;
                 }
             } else {
                 System.out.println("false point: " + point);
-                //break;
-                //ImageIO.write(buttonScreenshot, "bmp", new File("images/buttonBug" + i + ".bmp"));
-            }
-
-            if (clicksInARow > scoreThings) {
-                game.clickWithinGame(98, 451);//repair
-                clicksInARow = 0;
             }
         }
+    }
 
-        //game.releaseShift();
+    private void shopMultiplersAndRewards() {
+        clickShop();
+        game.waitMs(20);
+        //click2xReward();
+        game.waitMs(20);
+        for (int i = 0; i < 10; i++) {
+            clickMultiplier();
+            game.waitMs(20);
+        }
+        clickShop();
+        game.waitMs(20);
+    }
 
-        System.out.println("loop done");
+    private void clickMultiplier() {
+        game.clickWithinGame(SHOP_MULTIPLIER_X, SHOP_MULTIPLIER_Y);
+    }
+
+    private void click2xReward() {
+        game.clickWithinGame(SHOP_2X_X, SHOP_2X_Y);
+    }
+
+    private void clickShop() {
+        game.clickWithinGame(SHOP_X, SHOP_Y);
     }
 
     private boolean legalPoint(Point point) {
@@ -137,9 +145,9 @@ public class ButtonPlayer {
 
         if (pointList.size() < 3) {
             System.out.println("Oh shit");
-            ImageIO.write(buttonScreenshot, "bmp", new File("images/buttonBug" + UUID.randomUUID() + ".bmp"));
-            //return new Point(10, 34); //click top left corner
-            throw new RuntimeException("No circle found");
+            //ImageIO.write(buttonScreenshot, "bmp", new File("images/buttonBug" + UUID.randomUUID() + ".bmp"));
+            return new Point(10, 34); //click top left corner
+            //throw new RuntimeException("No circle found");
         }
 
         if (pointList.get(1).x - pointList.get(0).x > CIRCLE_RADIUS * 2 + 5) {
@@ -150,7 +158,7 @@ public class ButtonPlayer {
             Point point = circleFromPoints(pointList.get(0), pointList.get(1), pointList.get(2));
             return point;
         } catch (IllegalArgumentException e) {
-            ImageIO.write(buttonScreenshot, "bmp", new File("images/buttonBug" + UUID.randomUUID() + ".bmp"));
+            //ImageIO.write(buttonScreenshot, "bmp", new File("images/buttonBug" + UUID.randomUUID() + ".bmp"));
             System.out.println(pointList);
             return new Point(10, 34); //click top left corner
         }

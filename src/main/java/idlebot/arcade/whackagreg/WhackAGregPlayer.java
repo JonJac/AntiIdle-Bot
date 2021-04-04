@@ -23,6 +23,7 @@ import java.util.stream.IntStream;
 
 import static idlebot.arcade.whackagreg.WhackAGregConstants.BEGIN_GAME_BUTTON_X;
 import static idlebot.arcade.whackagreg.WhackAGregConstants.BEGIN_GAME_BUTTON_Y;
+import static ml.ModelUtil.predict;
 
 public class WhackAGregPlayer {
     private static final Object lock = new Object();
@@ -70,21 +71,21 @@ public class WhackAGregPlayer {
 
                         BufferedImage square = capture.getSubimage(x1, y1, WhackAGregConstants.SQUARE_WIDTH, WhackAGregConstants.SQUARE_HEIGHT);
                         try {
-                            int[] predict = predict(model, loader, square);
-                            //System.out.println("predict: " + predict[0]);
+                            int prediction = predict(model, loader, square);
+                            //System.out.println("prediction: " + prediction);
 
 
                             //ImageIO.write(square, "bmp", new File("images/" + UUID.randomUUID() + ".bmp"));
 
-                            if (predict[0] == 6) { //are we in menu?
+                            if (prediction == 6) { //are we in menu?
 
                                 //ImageIO.write(square, "bmp", new File("images/" + UUID.randomUUID() + ".bmp"));
-                                System.out.println("predict: " + predict[0]);
+                                System.out.println("prediction: " + prediction);
                                 addObjectToStopLoop.add(Boolean.TRUE);
                             }
 
-                            if (GregClassifier.stuffToClick.contains(predict[0])) {
-                                //ImageIO.write(square, "bmp", new File("images/predicted_" + predict[0] + "_" + UUID.randomUUID() + ".bmp"));
+                            if (GregClassifier.stuffToClick.contains(prediction)) {
+                                //ImageIO.write(square, "bmp", new File("images/predicted_" + prediction[0] + "_" + UUID.randomUUID() + ".bmp"));
                                 System.out.println("GOOD PREDICT");
                                 clickCount.incrementAndGet();
 
@@ -95,8 +96,8 @@ public class WhackAGregPlayer {
                                             WhackAGregConstants.SQUARE_WIDTH, WhackAGregConstants.SQUARE_HEIGHT);
                                     if (lastClickedMap.get(gregRect) == null || lastClickedMap.get(gregRect) < System.currentTimeMillis() - timeSinceLastClickMs) {
 /*                                    BufferedImage screenCapture = robot.createScreenCapture(gregRect);
-                                    int guess = predict(model, loader, square)[0];
-                                    System.out.println("predict: " + guess);
+                                    int guess = prediction(model, loader, square)[0];
+                                    System.out.println("prediction: " + guess);
                                     if(GregClassifier.stuffToClick.contains(guess)){
                                         ImageIO.write(screenCapture, "bmp", new File("images/" + UUID.randomUUID() + ".bmp"));
                                     }*/
@@ -121,18 +122,5 @@ public class WhackAGregPlayer {
                 Thread.sleep(100);
             }
         }
-    }
-
-    private static int[] predict(MultiLayerNetwork model, NativeImageLoader loader, BufferedImage square) throws IOException {
-        INDArray image;
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        ImageIO.write(square, "bmp", os);                          // Passing: ​(RenderedImage im, String formatName, OutputStream output)
-        InputStream is = new ByteArrayInputStream(os.toByteArray());
-        image = loader.asRowVector(is);
-
-        INDArray input = Nd4j.create(new int[]{1, 40 * 40 * 3}).addRowVector(image);
-        input.putRow(0, image);
-        int[] predict = model.predict(input);
-        return predict;
     }
 }

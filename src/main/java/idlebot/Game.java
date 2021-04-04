@@ -19,8 +19,12 @@ public class Game {
         this.robot = new Robot();
     }
 
+    public void clickWithinGame(Point p) {
+        clickWithinGame(p.x, p.y);
+    }
+
     public void clickWithinGame(int x, int y) {
-        if(x < 9 || y < 33){
+        if (x < 9 || y < 33) {
             System.out.println("it was attempted to click outside of game. x=" + x + ", y=" + y);
             return;
         }
@@ -29,6 +33,11 @@ public class Game {
             robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
             robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
         }
+    }
+
+    public void clickWithinGameWithUiUpdateDelay(int x, int y) {
+        clickWithinGame(x, y);
+        waitMs(20);
     }
 
     public void pressLeftArrowKey() {
@@ -49,6 +58,18 @@ public class Game {
         robot.keyRelease(KeyEvent.VK_DOWN);
     }
 
+    public void pressSpace() {
+        robot.keyPress(KeyEvent.VK_SPACE);
+        waitMs(keyPressDelayMs);
+        robot.keyRelease(KeyEvent.VK_SPACE);
+    }
+
+    public void pressCtrl() {
+        robot.keyPress(KeyEvent.VK_CONTROL);
+        waitMs(keyPressDelayMs);
+        robot.keyRelease(KeyEvent.VK_CONTROL);
+    }
+
     public void holdShiftDown() {
         robot.keyPress(KeyEvent.VK_SHIFT);
     }
@@ -58,13 +79,17 @@ public class Game {
     }
 
     public void moveMouseWithinGame(int x, int y) {
-        if(x < 9 || y < 33){
-            System.out.println("it was attempted to click outside of game. x=" + x +", y=" + y);
+        if (x < 9 || y < 33) {
+            System.out.println("it was attempted to click outside of game. x=" + x + ", y=" + y);
             return;
         }
         synchronized (lock) {
-            robot.mouseMove(antiIdleRect.x + x, antiIdleRect.y +y);
+            robot.mouseMove(antiIdleRect.x + x, antiIdleRect.y + y);
         }
+    }
+
+    public BufferedImage screenShot(int x, int y, int width, int height) {
+        return screenShot(new Rectangle(x, y, width, height));
     }
 
     public BufferedImage screenShot(Rectangle rectangle) {

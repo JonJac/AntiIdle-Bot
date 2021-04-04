@@ -14,10 +14,13 @@ import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
+import idlebot.arcade.avoidance.AvoidancePlayer;
 import idlebot.arcade.balance.BalancePlayer;
+import idlebot.arcade.balance.BalanceSquare;
 import idlebot.arcade.whackagreg.WhackAGregConstants;
 import idlebot.arcade.whackagreg.WhackAGregPlayer;
 import idlebot.botton.ButtonPlayer;
+import idlebot.fishing.FishingPlayer;
 import ml.GregClassifier;
 import org.datavec.image.loader.NativeImageLoader;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
@@ -30,6 +33,7 @@ import javax.imageio.ImageIO;
 public class IdleBotMain {
     private static int expectedWidth = 669;
     private static int expectedHeight = 709;
+
     public static void main(String[] args) throws AWTException, IOException, InterruptedException {
         Rectangle antiIdleRect = getWindowForProcess("Adobe Flash Player 9");
 
@@ -38,19 +42,30 @@ public class IdleBotMain {
         game.clickWithinGame(10, 34); //click so there is something to screenshot
         game.screenshotGame("test.bmp");
 
-        ButtonPlayer player = new ButtonPlayer(game);
-        //player.play();
+        AvoidancePlayer avoidancePlayer = new AvoidancePlayer(game);
+        avoidancePlayer.play();
+
+        //oldShit(antiIdleRect, game);
+
+    }
+
+    private static void oldShit(Rectangle antiIdleRect, Game game) throws IOException, InterruptedException {
+        ButtonPlayer buttonPlayer = new ButtonPlayer(game);
+        //buttonPlayer.play();
+
+        FishingPlayer fishingPlayer = new FishingPlayer(game);
+        //fishingPlayer.play();
 
         WhackAGregPlayer whackAGregPlayer = new WhackAGregPlayer(game);
-        whackAGregPlayer.playAGameOfGreg(antiIdleRect);
+        for (int i = 0; i < 0; i++) {
+            whackAGregPlayer.playAGameOfGreg(antiIdleRect);
+        }
 
         BalancePlayer balancePlayer = new BalancePlayer(game);
         for (int i = 0; i < 0; i++) {
             balancePlayer.playBalance();
-            game.clickWithinGame(252, 391);
-            game.waitMs(20);
+            game.clickWithinGameWithUiUpdateDelay(252, 391);
         }
-
     }
 
     public static Rectangle getWindowForProcess(String windowName) {

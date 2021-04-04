@@ -15,7 +15,7 @@ import static idlebot.arcade.balance.BalanceSquare.*;
 
 public class BalancePlayer {
     private Game game;
-    private int waitAfterKeyPressMs = 25;
+    private int waitAfterKeyPressMs = 30;
     private int waitBeforeDetectingMs = 0;
 
     public BalancePlayer(Game game) {
@@ -45,14 +45,21 @@ public class BalancePlayer {
                 break;
             }
 
-            if (lane1.size() > 0 && lane1.peek() == nextSquare) {
+            if (hasSameSquareOnTop(lane1, nextSquare, 2)) {
                 playLane1(lane1, nextSquare);
-            } else if (lane2.size() > 0 && lane2.peek() == nextSquare) {
+            } else if (hasSameSquareOnTop(lane2, nextSquare, 2)) {
                 playLane2(lane2, nextSquare);
-            } else if (lane3.size() > 0 && lane3.peek() == nextSquare) {
+            } else if (hasSameSquareOnTop(lane3, nextSquare, 2)) {
+                playLane3(lane3, nextSquare);
+            } else if (hasSameSquareOnTop(lane1, nextSquare, 1)) {
+                playLane1(lane1, nextSquare);
+            } else if (hasSameSquareOnTop(lane2, nextSquare, 1)) {
+                playLane2(lane2, nextSquare);
+            } else if (hasSameSquareOnTop(lane3, nextSquare, 1)) {
                 playLane3(lane3, nextSquare);
             } else {
-                int minIndex = minIndex(lanes);
+                //Unknown ends up here
+                int minIndex = indexOfLaneWithFewestSquares(lanes);
                 System.out.println("Choosing min lane: " + minIndex + " with size = " + lanes.get(minIndex).size());
                 if (minIndex == 0) {
                     playLane1(lane1, nextSquare);
@@ -64,6 +71,15 @@ public class BalancePlayer {
             }
 
         }
+    }
+
+    private boolean hasSameSquareOnTop(Stack<BalanceSquare> lane1, BalanceSquare nextSquare, int amount) {
+        if (amount == 1) {
+            return lane1.size() > 0 && lane1.peek() == nextSquare;
+        } else if (lane1.size() > amount - 1) {
+            return lane1.get(lane1.size() - 1) == nextSquare && lane1.get(lane1.size() - 1) == lane1.get(lane1.size() - 2);
+        }
+        return false;
     }
 
     private void playLane3(Stack<BalanceSquare> lane3, BalanceSquare nextSquare) {
@@ -98,7 +114,7 @@ public class BalancePlayer {
         }
     }
 
-    public static int minIndex(List<Stack<BalanceSquare>> list) {
+    public static int indexOfLaneWithFewestSquares(List<Stack<BalanceSquare>> list) {
         int i = 0, minIndex = -1, minimum = Integer.MAX_VALUE;
         for (Stack<BalanceSquare> x : list) {
             if ((x != null) && (x.size() < minimum)) {
