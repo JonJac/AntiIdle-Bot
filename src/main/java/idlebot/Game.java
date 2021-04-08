@@ -70,6 +70,12 @@ public class Game {
         robot.keyRelease(KeyEvent.VK_CONTROL);
     }
 
+    public void pressKey(int event) {
+        robot.keyPress(event);
+        waitMs(keyPressDelayMs);
+        robot.keyRelease(event);
+    }
+
     public void holdShiftDown() {
         robot.keyPress(KeyEvent.VK_SHIFT);
     }

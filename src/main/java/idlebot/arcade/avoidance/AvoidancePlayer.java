@@ -16,7 +16,6 @@ import static idlebot.arcade.whackagreg.WhackAGregConstants.BEGIN_GAME_BUTTON_Y;
 
 public class AvoidancePlayer {
     private Game game;
-    private Random rng = new Random();
     private int anInt = AvoidanceConstants.gameWindow.width - AvoidanceConstants.padding * 2;
 
     public AvoidancePlayer(Game game) {
@@ -28,17 +27,17 @@ public class AvoidancePlayer {
         game.waitMs(3000);
 
         internalPlay();
+
+
+        game.waitMs(2000);
+        game.clickWithinGame(260, 395);
+        game.waitMs(100);
+
     }
 
     private void internalPlay() {
         int lastX = AvoidanceConstants.padding;
         int lastY = AvoidanceConstants.padding;
-        Robot robot = null;
-        try {
-            robot = new Robot();
-        } catch (AWTException e) {
-            e.printStackTrace();
-        }
 
 
         int count = -1;
@@ -47,7 +46,7 @@ public class AvoidancePlayer {
         while (bufferedImage == null || backButtonVisible(bufferedImage)) {
             count++;
             //System.out.println("Round " + count);
-            game.waitMs(10);
+            //game.waitMs(10);
             bufferedImage = game.screenShot(AvoidanceConstants.gameWindow);
             //writeImage(count, bufferedImage);
 
@@ -83,7 +82,7 @@ public class AvoidancePlayer {
             moveMouseWithinGameArea(bestPointSoFar.x, bestPointSoFar.y);
             System.out.println("Could not find completely clear spot. Too point: " + bestPointSoFar);
             writeImage(count, bufferedImage);
-            if (bestPointSoFar.clear < 10) {
+            if (bestPointSoFar.clear < 20) {
                 game.pressCtrl();
             }
         }
@@ -241,12 +240,12 @@ public class AvoidancePlayer {
     }
 
     private void moveMouseWithinGameArea(int x, int y) {
-        game.holdShiftDown();
+        //game.holdShiftDown();
         game.moveMouseWithinGame(
                 AvoidanceConstants.gameWindow.x + x,
                 AvoidanceConstants.gameWindow.y + y);
-        game.waitMs(1);
-        game.releaseShift();
+        //game.waitMs(1);
+        //game.releaseShift();
     }
 
 

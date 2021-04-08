@@ -15,8 +15,7 @@ import static idlebot.botton.ButtonConstants.*;
 public class ButtonPlayer {
     static final double TOL = 0.0000001;
     static final int maxPerfectsInARow = 6;
-    private static int clickRegistryFactor = 10; //not all clicks are registered by the flash programme
-
+    private static final double clickRegistryFactor = 5.6; //not all clicks are registered by the flash programme
 
     private Game game;
 
@@ -64,7 +63,7 @@ public class ButtonPlayer {
     private void shopMultiplersAndRewards() {
         clickShop();
         game.waitMs(20);
-        //click2xReward();
+        click2xReward();
         game.waitMs(20);
         for (int i = 0; i < 10; i++) {
             clickMultiplier();

@@ -8,7 +8,7 @@ public class AvoidanceConstants {
     static final int searchLength = 30;
     static final int padding = 70;
     static final int searchGridDistY = (gameWindow.height - 2 * padding) / 4 - 2;
-    static final int searchGridDistX = (gameWindow.width - 2 * padding) / 4 - 2;
+    static final int searchGridDistX = (gameWindow.width - 2 * padding) / 6 - 2;
     static final int dangerColor = 0xFFD81609;
     public static final java.util.Set<Integer> BAD_COLORS = Set.of(0xFFD81609, 0xFFB11F12, 0xFF50382B, 0xFF633326, 0xFF8A291C, 0xFF5A3528);
     static final int backgroundColor = 0xFF3D3D30;

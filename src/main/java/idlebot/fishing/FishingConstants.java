@@ -6,6 +6,7 @@ import java.util.List;
 public class FishingConstants {
     static Rectangle fishingBar = new Rectangle(304, 450, 185, 11);
     static int triangleWidth = 19;
+    static int triangleHistory = 5;
     static Point levelUp = new Point(366, 146);
 
     public static final java.util.List<Integer> TRIANGLE_COLORS = java.util.List.of(0xFFFF7F00);

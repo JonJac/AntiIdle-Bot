@@ -42,8 +42,12 @@ public class IdleBotMain {
         game.clickWithinGame(10, 34); //click so there is something to screenshot
         game.screenshotGame("test.bmp");
 
-        AvoidancePlayer avoidancePlayer = new AvoidancePlayer(game);
-        avoidancePlayer.play();
+        Navigator navigator = new Navigator(game);
+        BoostController boostController = new BoostController(game);
+
+        ButtonPlayer buttonPlayer = new ButtonPlayer(game);
+        buttonPlayer.play();
+
 
         //oldShit(antiIdleRect, game);
 
@@ -53,8 +57,11 @@ public class IdleBotMain {
         ButtonPlayer buttonPlayer = new ButtonPlayer(game);
         //buttonPlayer.play();
 
+        AvoidancePlayer avoidancePlayer = new AvoidancePlayer(game);
+        avoidancePlayer.play();
+
         FishingPlayer fishingPlayer = new FishingPlayer(game);
-        //fishingPlayer.play();
+        fishingPlayer.play();
 
         WhackAGregPlayer whackAGregPlayer = new WhackAGregPlayer(game);
         for (int i = 0; i < 0; i++) {
