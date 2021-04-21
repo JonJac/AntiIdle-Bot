@@ -24,7 +24,7 @@ public class BalancePlayer {
 
     public void playBalance() {
         clickStart();
-        waitMs(3500);
+        waitMs(3300);
 
         Stack<BalanceSquare> lane1 = new Stack<>();
         Stack<BalanceSquare> lane2 = new Stack<>();
@@ -100,17 +100,22 @@ public class BalancePlayer {
         System.out.println("Lane 1:" + lane1);
     }
 
-    private void detectUnknownAndUpdateLaneState(Stack<BalanceSquare> lane2, BalanceSquare nextSquare, int lane2X) {
+    private void detectUnknownAndUpdateLaneState(Stack<BalanceSquare> lane, BalanceSquare nextSquare, int laneXCoordinate) {
         waitMs(waitAfterKeyPressMs);
         if (nextSquare == Unknown) {
             waitMs(waitBeforeDetectingMs);
-            nextSquare = detectUnknown(lane2X);
+            nextSquare = detectUnknown(laneXCoordinate);
         }
-        if (nextSquare == NoBlock) {
-            clear2InARow(lane2);
+        if (nextSquare == Unknown) {
+            //We don't know how the current state, so just clear it and play on
+            lane.clear();
+            return;
+        }
+        if (nextSquare == NoBlock && lane.size() > 1) {
+            clear2InARow(lane);
         } else {
-            lane2.push(nextSquare);
-            clear3InARow(lane2);
+            lane.push(nextSquare);
+            clear3InARow(lane);
         }
     }
 
@@ -131,13 +136,13 @@ public class BalancePlayer {
         int count = 0;
         while (count < 30) {
             BufferedImage bufferedImage = game.screenShot(new Rectangle(laneX, LANE_WINDOW_Y, 1, LANE_WINDOW_HEIGHT));
-            try {
+/*            try {
                 if (count == 1) {
                     ImageIO.write(bufferedImage, "bmp", new File("laneDetect.bmp"));
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-            }
+            }*/
 
             for (int i = 0; i < bufferedImage.getHeight(); i++) {
                 BalanceSquare square = rgbDetectMap.get(bufferedImage.getRGB(0, i));
@@ -155,7 +160,9 @@ public class BalancePlayer {
             count++;
         }
 
-        throw new RuntimeException("Unable to detect top block in lane with X=" + laneX);
+        //throw new RuntimeException("Unable to detect top block in lane with X=" + laneX);
+
+        return Unknown;
     }
 
     private void clear3InARow(Stack<BalanceSquare> lane) {
