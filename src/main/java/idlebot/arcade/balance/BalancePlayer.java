@@ -17,12 +17,13 @@ public class BalancePlayer {
     private Game game;
     private int waitAfterKeyPressMs = 30;
     private int waitBeforeDetectingMs = 0;
+    private int blockCountBeforeForceEndingGame = 500;
 
     public BalancePlayer(Game game) {
         this.game = game;
     }
 
-    public void playBalance() {
+    public void playBalance(boolean attemptMaxScore) {
         clickStart();
         waitMs(3300);
 
@@ -31,6 +32,7 @@ public class BalancePlayer {
         Stack<BalanceSquare> lane3 = new Stack<>();
         List<Stack<BalanceSquare>> lanes = List.of(lane1, lane2, lane3);
 
+        int count = 0;
         //Problem: How to determine what the unknown sqaure was?
         while (true) {
             BalanceSquare nextSquare = getNextSquare();
@@ -43,6 +45,10 @@ public class BalancePlayer {
             if (nextSquare == MenuAfterEndedGame) {
                 System.out.println("Menu detected");
                 break;
+            }
+
+            if (!attemptMaxScore && count > blockCountBeforeForceEndingGame) {
+                playLane1(lane1, nextSquare);
             }
 
             if (hasSameSquareOnTop(lane1, nextSquare, 2)) {
@@ -70,6 +76,7 @@ public class BalancePlayer {
                 }
             }
 
+            count++;
         }
     }
 

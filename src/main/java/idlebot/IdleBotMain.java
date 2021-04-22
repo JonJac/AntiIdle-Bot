@@ -1,34 +1,20 @@
 package idlebot;
 
 import java.awt.*;
-import java.awt.event.InputEvent;
-import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.*;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.IntStream;
 
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
+import idlebot.arcade.ArcadeNavigator;
 import idlebot.arcade.avoidance.AvoidancePlayer;
 import idlebot.arcade.balance.BalancePlayer;
-import idlebot.arcade.balance.BalanceSquare;
-import idlebot.arcade.whackagreg.WhackAGregConstants;
+import idlebot.arcade.mmrx.MmrXPlayer;
 import idlebot.arcade.whackagreg.WhackAGregPlayer;
+import idlebot.battle.arena.BattleArenaPlayer;
 import idlebot.botton.ButtonPlayer;
 import idlebot.fishing.FishingPlayer;
-import ml.GregClassifier;
-import org.datavec.image.loader.NativeImageLoader;
-import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
-import org.deeplearning4j.util.ModelSerializer;
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.factory.Nd4j;
-
-import javax.imageio.ImageIO;
 
 public class IdleBotMain {
     private static int expectedWidth = 669;
@@ -42,19 +28,28 @@ public class IdleBotMain {
         game.clickWithinGame(10, 34); //click so there is something to screenshot
         game.screenshotGame("test.bmp");
 
-        Navigator navigator = new Navigator(game);
+        GameNavigator navigator = new GameNavigator(game);
         BoostController boostController = new BoostController(game);
+        ShopController shopController = new ShopController(game);
 
-        AvoidancePlayer avoidancePlayer = new AvoidancePlayer(game);
-        avoidancePlayer.play();
+        GamePlayer gamePlayer = createGamePlayer(game);
+        //gamePlayer.play();
 
-        //oldShit(antiIdleRect, game);
+        ArcadeNavigator arcadeNavigator = new ArcadeNavigator(game);
+
+        MmrXPlayer mmrXPlayer = new MmrXPlayer(game);
+        arcadeNavigator.clickPlay();
+        mmrXPlayer.play(new Game(antiIdleRect), new Game(antiIdleRect));
+        arcadeNavigator.clickBack();
+
 
     }
 
     private static void oldShit(Rectangle antiIdleRect, Game game) throws IOException, InterruptedException {
         ButtonPlayer buttonPlayer = new ButtonPlayer(game);
-        //buttonPlayer.play();
+        for (int i = 0; i < 5000; i++) {
+            buttonPlayer.play();
+        }
 
         AvoidancePlayer avoidancePlayer = new AvoidancePlayer(game);
         avoidancePlayer.play();
@@ -68,10 +63,15 @@ public class IdleBotMain {
         }
 
         BalancePlayer balancePlayer = new BalancePlayer(game);
-        for (int i = 0; i < 0; i++) {
-            balancePlayer.playBalance();
+        for (int i = 0; i < 500; i++) {
+            balancePlayer.playBalance(false);
             game.clickWithinGameWithUiUpdateDelay(252, 391);
         }
+    }
+
+    private static GamePlayer createGamePlayer(Game game) {
+        return new GamePlayer(game, new AvoidancePlayer(game), new BalancePlayer(game), new WhackAGregPlayer(game), new ButtonPlayer(game), new FishingPlayer(game), new BattleArenaPlayer(game), new BoostController(game), new DragonController(game),
+                new GameNavigator(game), new ProgressController(game), new ShopController(game));
     }
 
     public static Rectangle getWindowForProcess(String windowName) {

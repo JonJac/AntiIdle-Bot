@@ -37,7 +37,31 @@ public class Game {
 
     public void clickWithinGameWithUiUpdateDelay(int x, int y) {
         clickWithinGame(x, y);
-        waitMs(20);
+        waitMs(60);
+    }
+
+    public void holdLeftArrowKey() {
+        robot.keyPress(KeyEvent.VK_LEFT);
+    }
+
+    public void holdRightArrowKey() {
+        robot.keyPress(KeyEvent.VK_RIGHT);
+    }
+
+    public void holdDownArrowKey() {
+        robot.keyPress(KeyEvent.VK_DOWN);
+    }
+
+    public void releaseLeftArrowKey() {
+        robot.keyRelease(KeyEvent.VK_LEFT);
+    }
+
+    public void releaseRightArrowKey() {
+        robot.keyRelease(KeyEvent.VK_RIGHT);
+    }
+
+    public void releaseDownArrowKey() {
+        robot.keyRelease(KeyEvent.VK_DOWN);
     }
 
     public void pressLeftArrowKey() {
@@ -96,6 +120,10 @@ public class Game {
 
     public BufferedImage screenShot(int x, int y, int width, int height) {
         return screenShot(new Rectangle(x, y, width, height));
+    }
+
+    public BufferedImage screenShotFullGame() {
+        return screenShot(new Rectangle(0, 0, antiIdleRect.width, antiIdleRect.height));
     }
 
     public BufferedImage screenShot(Rectangle rectangle) {

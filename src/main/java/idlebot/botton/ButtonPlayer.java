@@ -15,7 +15,7 @@ import static idlebot.botton.ButtonConstants.*;
 public class ButtonPlayer {
     static final double TOL = 0.0000001;
     static final int maxPerfectsInARow = 6;
-    private static final double clickRegistryFactor = 5.6; //not all clicks are registered by the flash programme
+    private static final double clickRegistryFactor = 10; //not all clicks are registered by the flash programme
 
     private Game game;
 
