@@ -9,14 +9,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Random;
 
-import static idlebot.arcade.avoidance.AvoidanceConstants.searchGridDistX;
-import static idlebot.arcade.avoidance.AvoidanceConstants.searchGridDistY;
+import static idlebot.arcade.avoidance.AvoidanceConstants.*;
 import static idlebot.arcade.whackagreg.WhackAGregConstants.BEGIN_GAME_BUTTON_X;
 import static idlebot.arcade.whackagreg.WhackAGregConstants.BEGIN_GAME_BUTTON_Y;
 
 public class AvoidancePlayer {
     private Game game;
-    private int anInt = AvoidanceConstants.gameWindow.width - AvoidanceConstants.padding * 2;
 
     public AvoidancePlayer(Game game) {
         this.game = game;
@@ -39,7 +37,6 @@ public class AvoidancePlayer {
         int lastX = AvoidanceConstants.padding;
         int lastY = AvoidanceConstants.padding;
 
-
         int count = -1;
         BufferedImage bufferedImage = null;
         outer:
@@ -60,8 +57,8 @@ public class AvoidancePlayer {
 
             SafePoint bestPointSoFar = currentSafePoint;
 
-            for (int y = AvoidanceConstants.padding; y < AvoidanceConstants.gameWindow.height - AvoidanceConstants.padding * 2; y = y + searchGridDistY) {
-                for (int x = AvoidanceConstants.padding; x < anInt; x = x + searchGridDistX) {
+            for (int y = padding; y < AvoidanceConstants.gameWindow.height - padding; y = y + searchGridDistY) {
+                for (int x = padding; x < AvoidanceConstants.gameWindow.width - padding; x = x + searchGridDistX) {
                     //System.out.println("checking: " + x + "," +y);
                     currentSafePoint = isSafe(x, y, bufferedImage);
                     if (currentSafePoint.isSafe()) {
@@ -78,10 +75,12 @@ public class AvoidancePlayer {
                 }
             }
 
-
+            //game.holdShiftDown();
+            //game.waitMs(40);
             moveMouseWithinGameArea(bestPointSoFar.x, bestPointSoFar.y);
+            //game.releaseShift();
             System.out.println("Could not find completely clear spot. Too point: " + bestPointSoFar);
-            writeImage(count, bufferedImage);
+            //writeImage(count, bufferedImage);
             if (bestPointSoFar.clear < 20) {
                 game.pressCtrl();
             }
@@ -164,57 +163,101 @@ public class AvoidancePlayer {
         //System.out.println(uuid  + "-original-x,y=" + x+ "," + y);
         int clear = Integer.MAX_VALUE;
 
-        for (int i = x - AvoidanceConstants.searchLength; i < x + AvoidanceConstants.searchLength; i++) {
+        for (int i = x - AvoidanceConstants.searchLength; i < x; i = i + 5) {
             //System.out.println(uuid  + "-search-i,y=" + i+ "," + y);
             checkUnknownColor(i, y, bufferedImage);
             if (isWrongColor(bufferedImage, i, y)) {
                 int abs = Math.abs(i - x);
                 if (abs < clear) {
                     clear = abs;
+                    //System.out.println("search-X-left");
+                    break;
                 }
                 //return new SafePoint(x, y, Math.abs(i - x), false, "search-X");
             }
         }
-        for (int i = y - AvoidanceConstants.searchLength + 1; i < y + AvoidanceConstants.searchLength; i++) {
+
+        for (int i = x; i < x + AvoidanceConstants.searchLength; i = i + 5) {
+            //System.out.println(uuid  + "-search-i,y=" + i+ "," + y);
+            checkUnknownColor(i, y, bufferedImage);
+            if (isWrongColor(bufferedImage, i, y)) {
+                int abs = Math.abs(i - x);
+                if (abs < clear) {
+                    clear = abs;
+                    //System.out.println("search-X-right");
+                    break;
+                }
+                //return new SafePoint(x, y, Math.abs(i - x), false, "search-X");
+            }
+        }
+        for (int i = y + 1; i < y + AvoidanceConstants.searchLength; i = i + 5) {
             //System.out.println(uuid  + "-search-x,i=" + x+ "," + i);
             checkUnknownColor(x, i, bufferedImage);
             if (isWrongColor(bufferedImage, x, i)) {
                 int abs = Math.abs(i - y);
                 if (abs < clear) {
                     clear = abs;
+                    //System.out.println("search-Y-down");
+                    break;
+                }
+                //return new SafePoint(x, y, abs, false, "search-Y");
+            }
+        }
+
+        for (int i = y - AvoidanceConstants.searchLength + 1; i < y; i = i + 5) {
+            //System.out.println(uuid  + "-search-x,i=" + x+ "," + i);
+            checkUnknownColor(x, i, bufferedImage);
+            if (isWrongColor(bufferedImage, x, i)) {
+                int abs = Math.abs(i - y);
+                if (abs < clear) {
+                    clear = abs;
+                    //System.out.println("search-Y-up");
+                    break;
                 }
                 //return new SafePoint(x, y, abs, false, "search-Y");
             }
         }
 
         //diagonal
-        int diagSearch = AvoidanceConstants.searchLength;
-        for (int i = 0; i < diagSearch; i++) {
+        int diagSearch = AvoidanceConstants.searchLength / 2;
+        for (int i = 0; i < diagSearch; i = i + 3) {
             checkUnknownColor(x + i, y + i, bufferedImage);
             if (isWrongColor(bufferedImage, x + i, y + i)) { //down  right
-                if (i < clear)
+                if (i < clear) {
                     clear = i;
+                    break;
+                    // System.out.println("search-down right");
+                }
                 //return new SafePoint(x, y, i, false, "search-down right");
             }
 
             checkUnknownColor(x - i, y - i, bufferedImage);
             if (isWrongColor(bufferedImage, x - i, y - i)) { //up left
-                if (i < clear)
+                if (i < clear) {
                     clear = i;
+                    break;
+                    //System.out.println("search-up left");
+                }
                 //return new SafePoint(x, y, i, false, "search-up left");
             }
 
             checkUnknownColor(x - i, y + i, bufferedImage);
             if (isWrongColor(bufferedImage, x - i, y + i)) { //down left
-                if (i < clear)
+                if (i < clear) {
                     clear = i;
+                    break;
+                    //System.out.println("search-down left");
+                }
                 //return new SafePoint(x, y, i, false, "search-down left");
             }
 
             checkUnknownColor(x + i, y - i, bufferedImage);
             if (isWrongColor(bufferedImage, x + i, y - i)) { //up right
-                if (i < clear)
+                if (i < clear) {
                     clear = i;
+                    break;
+                    //System.out.println("search-up right");
+                }
                 //return new SafePoint(x, y, i, false, "search-up right");
             }
         }
@@ -226,6 +269,10 @@ public class AvoidancePlayer {
     }
 
     private boolean isWrongColor(BufferedImage bufferedImage, int x, int y) {
+        //
+        if (x < 0 || y < 0 || bufferedImage.getHeight() <= y || bufferedImage.getWidth() <= x) {
+            return false;
+        }
         //return bufferedImage.getRGB(x, y) == AvoidanceConstants.dangerColor;
         return AvoidanceConstants.BAD_COLORS.contains(bufferedImage.getRGB(x, y));
     }

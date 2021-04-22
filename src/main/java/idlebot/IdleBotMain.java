@@ -45,13 +45,9 @@ public class IdleBotMain {
         Navigator navigator = new Navigator(game);
         BoostController boostController = new BoostController(game);
 
+        AvoidancePlayer avoidancePlayer = new AvoidancePlayer(game);
+        avoidancePlayer.play();
 
-        BalancePlayer balancePlayer = new BalancePlayer(game);
-        for (int i = 0; i < 20; i++) {
-            //game.clickWithinGameWithUiUpdateDelay(252, 391);
-            balancePlayer.playBalance();
-            game.clickWithinGameWithUiUpdateDelay(252, 391);
-        }
         //oldShit(antiIdleRect, game);
 
     }
