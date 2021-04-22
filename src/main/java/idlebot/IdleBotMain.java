@@ -39,7 +39,7 @@ public class IdleBotMain {
 
         MmrXPlayer mmrXPlayer = new MmrXPlayer(game);
         arcadeNavigator.clickPlay();
-        mmrXPlayer.play(new Game(antiIdleRect), new Game(antiIdleRect));
+        mmrXPlayer.play();
         arcadeNavigator.clickBack();
 
 

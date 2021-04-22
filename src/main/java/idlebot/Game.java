@@ -100,6 +100,14 @@ public class Game {
         robot.keyRelease(event);
     }
 
+    public void holdKey(int event) {
+        robot.keyPress(event);
+    }
+
+    public void releaseKey(int event) {
+        robot.keyRelease(event);
+    }
+
     public void holdShiftDown() {
         robot.keyPress(KeyEvent.VK_SHIFT);
     }
