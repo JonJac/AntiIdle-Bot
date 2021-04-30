@@ -6,13 +6,13 @@ import org.datavec.image.loader.NativeImageLoader;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.util.ModelSerializer;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
@@ -24,7 +24,7 @@ import static ml.ModelUtil.predict;
 public class WhackAGregPlayerThreaded {
     private Robot robot;
     private Map<Rectangle, Long> lastClickedMap = new HashMap<>();
-    private final int timeSinceLastClickMs = 100;
+    private final int timeSinceLastClickMs = 200;
     private Game game;
 
     public WhackAGregPlayerThreaded(Game game) {
@@ -36,7 +36,7 @@ public class WhackAGregPlayerThreaded {
         }
     }
 
-    public void playAGameOfGreg(Rectangle antiIdleRect, int column) {
+    public void playAGameOfGreg(Rectangle antiIdleRect, int column, ScreenShotContainer screenShotContainer) {
         MultiLayerNetwork model = loadModelFromDisk();
 
         {
@@ -58,7 +58,7 @@ public class WhackAGregPlayerThreaded {
             loopCount = loopCount + 1;
 
             long screenDumpStart = System.nanoTime();
-            BufferedImage capture = robot.createScreenCapture(new Rectangle(antiIdleRect.x + WhackAGregConstants.RELATIVE_TOP_LEFT_X + column * WhackAGregConstants.SQUARE_WIDTH, antiIdleRect.y + WhackAGregConstants.RELATIVE_TOP_LEFT_Y, WhackAGregConstants.SQUARE_WIDTH * 12, WhackAGregConstants.SQUARE_HEIGHT * WhackAGregConstants.SQUARE_Y_AMOUNT));
+            //BufferedImage capture = robot.createScreenCapture(new Rectangle(antiIdleRect.x + WhackAGregConstants.RELATIVE_TOP_LEFT_X + column * WhackAGregConstants.SQUARE_WIDTH, antiIdleRect.y + WhackAGregConstants.RELATIVE_TOP_LEFT_Y, WhackAGregConstants.SQUARE_WIDTH * 12, WhackAGregConstants.SQUARE_HEIGHT * WhackAGregConstants.SQUARE_Y_AMOUNT));
             screenDumpTime = screenDumpTime + (System.nanoTime() - screenDumpStart);
 
             for (int y = 0; y < WhackAGregConstants.SQUARE_Y_AMOUNT; y++) {
@@ -66,7 +66,7 @@ public class WhackAGregPlayerThreaded {
                 int y1 = y * WhackAGregConstants.SQUARE_HEIGHT; //antiIdleRect.y +
 
                 long predictStart = System.nanoTime();
-                BufferedImage square = capture.getSubimage(0, y1, WhackAGregConstants.SQUARE_WIDTH, WhackAGregConstants.SQUARE_HEIGHT);
+                BufferedImage square = screenShotContainer.gameScreenShot.getSubimage(x1, y1, WhackAGregConstants.SQUARE_WIDTH, WhackAGregConstants.SQUARE_HEIGHT);
                 try {
                     int prediction = predict(model, loader, square);
 

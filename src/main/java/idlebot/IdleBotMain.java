@@ -12,6 +12,8 @@ import idlebot.arcade.ArcadeNavigator;
 import idlebot.arcade.avoidance.AvoidancePlayer;
 import idlebot.arcade.balance.BalancePlayer;
 import idlebot.arcade.mmrx.MmrXPlayer;
+import idlebot.arcade.whackagreg.ScreenShotContainer;
+import idlebot.arcade.whackagreg.WhackAGregConstants;
 import idlebot.arcade.whackagreg.WhackAGregPlayer;
 import idlebot.arcade.whackagreg.WhackAGregPlayerThreaded;
 import idlebot.battle.arena.BattleArenaPlayer;
@@ -34,16 +36,22 @@ public class IdleBotMain {
         //gamePlayer.play();
 
         //System.out.println(String.format("0x%08X", -220392));
+        ScreenShotContainer screenShotContainer = new ScreenShotContainer();
+        Thread screenThread = new Thread(() -> screenShotContainer.startScreenCapturing(new Rectangle(antiIdleRect.x + WhackAGregConstants.RELATIVE_TOP_LEFT_X, antiIdleRect.y + WhackAGregConstants.RELATIVE_TOP_LEFT_Y, WhackAGregConstants.SQUARE_WIDTH * WhackAGregConstants.SQUARE_X_AMOUNT, WhackAGregConstants.SQUARE_HEIGHT * WhackAGregConstants.SQUARE_Y_AMOUNT)));
+        screenThread.start();
+
         WhackAGregPlayerThreaded whackAGregPlayer = new WhackAGregPlayerThreaded(game);
         ArrayList<Thread> threads = new ArrayList<>();
-        for (int i = 0; i < 1; i++) {
+
+        for (int i = 0; i < 12; i++) {
             final int column = i;
-            threads.add(new Thread(() -> whackAGregPlayer.playAGameOfGreg(antiIdleRect, column)));
+            threads.add(new Thread(() -> whackAGregPlayer.playAGameOfGreg(antiIdleRect, column, screenShotContainer)));
         }
         threads.forEach(Thread::start);
         for (Thread thread : threads) {
             thread.join();
         }
+        screenShotContainer.stop();
 
     }
 
