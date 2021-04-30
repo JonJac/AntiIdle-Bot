@@ -69,7 +69,7 @@ public class MmrXPlayer {
                         System.out.println("D");
                     }
                 }
-                game.waitMs(20);
+                game.waitMs(16);
 
                 if (reds > 0) {
                     game.releaseLeftArrowKey();
@@ -95,6 +95,7 @@ public class MmrXPlayer {
                 blues = 0;
                 greens = 0;
 
+                //game.waitMs(4);
             }
         }
 

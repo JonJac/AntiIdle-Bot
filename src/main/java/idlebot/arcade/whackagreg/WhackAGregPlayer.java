@@ -89,7 +89,7 @@ public class WhackAGregPlayer {
                                 System.out.println("GOOD PREDICT");
                                 clickCount.incrementAndGet();
 
-                                synchronized (lock) {
+                                //synchronized (lock) {
                                     Rectangle gregRect = new Rectangle(
                                             antiIdleRect.x + x1,
                                             antiIdleRect.y + y1,
@@ -106,7 +106,7 @@ public class WhackAGregPlayer {
                                     } else {
                                         //ImageIO.write(square, "bmp", new File("images/" + UUID.randomUUID() + ".bmp"));
                                     }
-                                }
+                                // }
                             }
 
                         } catch (IOException e) {

@@ -76,8 +76,9 @@ public class AvoidancePlayer {
             }
 
             //game.holdShiftDown();
-            //game.waitMs(40);
+            //game.waitMs(20);
             moveMouseWithinGameArea(bestPointSoFar.x, bestPointSoFar.y);
+            //game.waitMs(20);
             //game.releaseShift();
             System.out.println("Could not find completely clear spot. Too point: " + bestPointSoFar);
             //writeImage(count, bufferedImage);

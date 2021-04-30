@@ -16,7 +16,7 @@ import static idlebot.arcade.balance.BalanceSquare.*;
 public class BalancePlayer {
     private Game game;
     private int waitAfterKeyPressMs = 30;
-    private int waitBeforeDetectingMs = 0;
+    private int waitBeforeDetectingMs = 20;
     private int blockCountBeforeForceEndingGame = 500;
 
     public BalancePlayer(Game game) {

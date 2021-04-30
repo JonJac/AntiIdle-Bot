@@ -2,6 +2,7 @@ package idlebot;
 
 import java.awt.*;
 import java.io.*;
+import java.util.ArrayList;
 
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
@@ -12,6 +13,7 @@ import idlebot.arcade.avoidance.AvoidancePlayer;
 import idlebot.arcade.balance.BalancePlayer;
 import idlebot.arcade.mmrx.MmrXPlayer;
 import idlebot.arcade.whackagreg.WhackAGregPlayer;
+import idlebot.arcade.whackagreg.WhackAGregPlayerThreaded;
 import idlebot.battle.arena.BattleArenaPlayer;
 import idlebot.botton.ButtonPlayer;
 import idlebot.fishing.FishingPlayer;
@@ -28,20 +30,20 @@ public class IdleBotMain {
         game.clickWithinGame(10, 34); //click so there is something to screenshot
         game.screenshotGame("test.bmp");
 
-        GameNavigator navigator = new GameNavigator(game);
-        BoostController boostController = new BoostController(game);
-        ShopController shopController = new ShopController(game);
-
         GamePlayer gamePlayer = createGamePlayer(game);
         //gamePlayer.play();
 
-        ArcadeNavigator arcadeNavigator = new ArcadeNavigator(game);
-
-        MmrXPlayer mmrXPlayer = new MmrXPlayer(game);
-        arcadeNavigator.clickPlay();
-        mmrXPlayer.play();
-        arcadeNavigator.clickBack();
-
+        //System.out.println(String.format("0x%08X", -220392));
+        WhackAGregPlayerThreaded whackAGregPlayer = new WhackAGregPlayerThreaded(game);
+        ArrayList<Thread> threads = new ArrayList<>();
+        for (int i = 0; i < 1; i++) {
+            final int column = i;
+            threads.add(new Thread(() -> whackAGregPlayer.playAGameOfGreg(antiIdleRect, column)));
+        }
+        threads.forEach(Thread::start);
+        for (Thread thread : threads) {
+            thread.join();
+        }
 
     }
 
@@ -67,6 +69,13 @@ public class IdleBotMain {
             balancePlayer.playBalance(false);
             game.clickWithinGameWithUiUpdateDelay(252, 391);
         }
+
+        ArcadeNavigator arcadeNavigator = new ArcadeNavigator(game);
+        MmrXPlayer mmrXPlayer = new MmrXPlayer(game);
+        arcadeNavigator.clickPlay();
+        mmrXPlayer.play();
+        arcadeNavigator.clickBack();
+
     }
 
     private static GamePlayer createGamePlayer(Game game) {
