@@ -17,14 +17,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
-import static idlebot.arcade.whackagreg.WhackAGregConstants.BEGIN_GAME_BUTTON_X;
-import static idlebot.arcade.whackagreg.WhackAGregConstants.BEGIN_GAME_BUTTON_Y;
+import static idlebot.arcade.whackagreg.WhackAGregConstants.*;
+import static java.awt.image.BufferedImage.TYPE_BYTE_BINARY;
 import static ml.ModelUtil.predict;
 
 public class WhackAGregPlayerThreaded {
     private Robot robot;
     private Map<Rectangle, Long> lastClickedMap = new HashMap<>();
-    private final int timeSinceLastClickMs = 200;
+    private final int timeSinceLastClickMs = 70;
     private Game game;
 
     public WhackAGregPlayerThreaded(Game game) {
@@ -45,8 +45,6 @@ public class WhackAGregPlayerThreaded {
         }
 
         int loopCount = 0;
-        long screenDumpTime = 0;
-        long predictionTime = 0;
         long totalTime = 0;
 
         NativeImageLoader loader = new NativeImageLoader(40, 40);
@@ -55,32 +53,70 @@ public class WhackAGregPlayerThreaded {
         while (addObjectToStopLoop.size() < 5) {
             long totalStart = System.nanoTime();
 
-            loopCount = loopCount + 1;
-
-            long screenDumpStart = System.nanoTime();
-            //BufferedImage capture = robot.createScreenCapture(new Rectangle(antiIdleRect.x + WhackAGregConstants.RELATIVE_TOP_LEFT_X + column * WhackAGregConstants.SQUARE_WIDTH, antiIdleRect.y + WhackAGregConstants.RELATIVE_TOP_LEFT_Y, WhackAGregConstants.SQUARE_WIDTH * 12, WhackAGregConstants.SQUARE_HEIGHT * WhackAGregConstants.SQUARE_Y_AMOUNT));
-            screenDumpTime = screenDumpTime + (System.nanoTime() - screenDumpStart);
-
             for (int y = 0; y < WhackAGregConstants.SQUARE_Y_AMOUNT; y++) {
                 int x1 = column * WhackAGregConstants.SQUARE_WIDTH; //antiIdleRect.x +
                 int y1 = y * WhackAGregConstants.SQUARE_HEIGHT; //antiIdleRect.y +
 
-                long predictStart = System.nanoTime();
+                loopCount = loopCount + 1;
+
                 BufferedImage square = screenShotContainer.gameScreenShot.getSubimage(x1, y1, WhackAGregConstants.SQUARE_WIDTH, WhackAGregConstants.SQUARE_HEIGHT);
+
+                BufferedImage blackAndWhite = new BufferedImage(square.getWidth(), square.getHeight(), TYPE_BYTE_BINARY);
+                blackAndWhite.createGraphics().drawImage(square, 0, 0, null);
+
+                if (check(WhackAGregConstants.xyGoodGreg, blackAndWhite) || check(WhackAGregConstants.xyAwesome, blackAndWhite) || check(xyMultiplier, blackAndWhite)) {
+                    Rectangle gregRect = new Rectangle(
+                            antiIdleRect.x + x1,
+                            antiIdleRect.y + y1,
+                            WhackAGregConstants.SQUARE_WIDTH, WhackAGregConstants.SQUARE_HEIGHT);
+                    if (lastClickedMap.get(gregRect) == null || lastClickedMap.get(gregRect) < System.currentTimeMillis() - timeSinceLastClickMs) {
+                        game.clickWithinGame(WhackAGregConstants.RELATIVE_TOP_LEFT_X + x1 + WhackAGregConstants.SQUARE_WIDTH / 2, WhackAGregConstants.RELATIVE_TOP_LEFT_Y + y1 + WhackAGregConstants.SQUARE_HEIGHT / 2);
+                        lastClickedMap.put(gregRect, System.currentTimeMillis());
+                    }
+                }
+
+/*
                 try {
                     int prediction = predict(model, loader, square);
 
-                    predictionTime = predictionTime + (System.nanoTime() - predictStart);
+                    if(prediction != 1 && prediction != 6){
+
+                        if(prediction == 4 && !check(WhackAGregConstants.xyMultiplier, blackAndWhite) ){
+                            System.out.println("Missmatch, prediction was : " + prediction);
+                            ImageIO.write(blackAndWhite, "bmp", new File("images/" + UUID.randomUUID() + ".bmp"));
+                        } else if(prediction != 4 && check(WhackAGregConstants.xyMultiplier, blackAndWhite)){
+                            System.out.println("I thought prediction " + prediction + " was a multiplier");
+                        }
+
+                        String prefix = "-";
+                        switch (prediction){
+                            case 0:
+                                prefix = "BadG";
+                                break;
+                            case 2:
+                                prefix = "goodAwe";
+                                break;
+                            case 3:
+                                prefix = "goodG";
+                                break;
+                            case 4:
+                                prefix = "multiplier";
+                                break;
+                            case 5:
+                                prefix = "coin";
+                                break;
+                            case 7:
+                                prefix = "badAwe";
+                        }
+                        //ImageIO.write(blackAndWhite, "bmp", new File("images/" + prefix + "-" + UUID.randomUUID() + ".bmp"));
+                    }
 
                     if (prediction == 6) { //are we in menu?
-
                         System.out.println("Menu detected");
                         addObjectToStopLoop.add(Boolean.TRUE);
                     }
 
                     if (GregClassifier.stuffToClick.contains(prediction)) {
-                        System.out.println("GOOD PREDICT");
-
                         Rectangle gregRect = new Rectangle(
                                 antiIdleRect.x + x1,
                                 antiIdleRect.y + y1,
@@ -94,17 +130,31 @@ public class WhackAGregPlayerThreaded {
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
+*/
             }
+
 
             totalTime = totalTime + (System.nanoTime() - totalStart);
         }
 
-        System.out.println("Column: " + column + ", total ms: " + (totalTime / 1_000_000) / loopCount + ", screenDump: " + (screenDumpTime / 1_000_000) / loopCount + ", predict: " + (predictionTime / 1_000_000) / loopCount);
+        System.out.println("Column: " + column + ", ms/square: " + (totalTime / 1_000_000) / loopCount);
 
 /*        {
             game.waitMs(2000);
             game.clickWithinGameWithUiUpdateDelay(260, 395);
         }*/
+    }
+
+    private boolean check(WhackAGregConstants.XyTriple[] xyGoodGreg, BufferedImage blackAndWhite) {
+        boolean result = true;
+        for (WhackAGregConstants.XyTriple triple : xyGoodGreg) {
+            if (blackAndWhite.getRGB(triple.x - 1, triple.y - 1) != triple.color) {
+                result = false;
+                //System.out.println(triple + ", was " + blackAndWhite.getRGB(triple.x - 1,triple.y - 1));
+            }
+        }
+
+        return result;
     }
 
     private MultiLayerNetwork loadModelFromDisk() {

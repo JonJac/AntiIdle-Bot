@@ -24,7 +24,7 @@ public class ScreenShotContainer {
             count++;
             gameScreenShot = robot.createScreenCapture(rectangle);
         }
-        System.out.println("Time pr image: " + ((System.nanoTime() - time) / 1_000_000) / count);
+        System.out.println("Screen shot FPS: " + 1000.0 / (((System.nanoTime() - time) / 1_000_000) / count));
     }
 
     public void stop() {
