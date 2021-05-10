@@ -18,15 +18,15 @@ public class WhackAGregConstants {
 
     static XyTriple[] xyGoodGreg = new XyTriple[]{
             new XyTriple(21, 23, white),
-            new XyTriple(14, 11, black),
+            new XyTriple(14, 11, white),
             new XyTriple(16, 35, white),
             new XyTriple(37, 37, white),
-            new XyTriple(20, 26, black)
+            new XyTriple(21, 26, white),
+            new XyTriple(20, 22, black)
     };
 
     static XyTriple[] xyAwesome = new XyTriple[]{
-            new XyTriple(28, 12, black),
-            new XyTriple(10, 15, black),
+            new XyTriple(28, 13, black),
             new XyTriple(10, 17, white),
             new XyTriple(6, 15, white),
             new XyTriple(17, 34, white),
@@ -34,10 +34,20 @@ public class WhackAGregConstants {
             new XyTriple(21, 39, black),
             new XyTriple(23, 13, white),
             new XyTriple(25, 33, white),
+            new XyTriple(35, 27, white),
     };
 
-
     static XyTriple[] xyMultiplier = new XyTriple[]{
+            new XyTriple(22, 22, white),
+            new XyTriple(25, 24, white),
+            new XyTriple(25, 20, white),
+            new XyTriple(27, 17, black),
+            new XyTriple(26, 26, black),
+            new XyTriple(13, 26, black),
+            new XyTriple(9, 17, black),
+    };
+
+/*    static XyTriple[] xyMultiplier = new XyTriple[]{
             new XyTriple(22, 22, white),
             new XyTriple(25, 24, white),
             new XyTriple(25, 20, white),
@@ -46,6 +56,12 @@ public class WhackAGregConstants {
             new XyTriple(23, 24, black),
             new XyTriple(20, 24, black),
             new XyTriple(26, 21, black),
+    };*/
+
+    static XyTriple[] xyMenu = new XyTriple[]{
+            new XyTriple(19, 2, white),
+            new XyTriple(19, 4, black),
+            new XyTriple(19, 5, white),
     };
 
     static class XyTriple {

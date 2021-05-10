@@ -30,4 +30,8 @@ public class ScreenShotContainer {
     public void stop() {
         run = false;
     }
+
+    public boolean isCapturing() {
+        return run;
+    }
 }

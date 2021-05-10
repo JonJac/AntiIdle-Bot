@@ -20,9 +20,11 @@ import idlebot.battle.arena.BattleArenaPlayer;
 import idlebot.botton.ButtonPlayer;
 import idlebot.fishing.FishingPlayer;
 
+import static java.lang.Thread.MAX_PRIORITY;
+
 public class IdleBotMain {
-    private static int expectedWidth = 669;
-    private static int expectedHeight = 709;
+    private static int expectedWidth = 680;
+    private static int expectedHeight = 720;
 
     public static void main(String[] args) throws AWTException, IOException, InterruptedException {
         Rectangle antiIdleRect = getWindowForProcess("Adobe Flash Player 9");
@@ -38,6 +40,7 @@ public class IdleBotMain {
         //System.out.println(String.format("0x%08X", -220392));
         ScreenShotContainer screenShotContainer = new ScreenShotContainer();
         Thread screenThread = new Thread(() -> screenShotContainer.startScreenCapturing(new Rectangle(antiIdleRect.x + WhackAGregConstants.RELATIVE_TOP_LEFT_X, antiIdleRect.y + WhackAGregConstants.RELATIVE_TOP_LEFT_Y, WhackAGregConstants.SQUARE_WIDTH * WhackAGregConstants.SQUARE_X_AMOUNT, WhackAGregConstants.SQUARE_HEIGHT * WhackAGregConstants.SQUARE_Y_AMOUNT)));
+        screenThread.setPriority(MAX_PRIORITY);
         screenThread.start();
 
         WhackAGregPlayerThreaded whackAGregPlayer = new WhackAGregPlayerThreaded(game);
@@ -51,7 +54,6 @@ public class IdleBotMain {
         for (Thread thread : threads) {
             thread.join();
         }
-        screenShotContainer.stop();
 
     }
 
@@ -103,9 +105,9 @@ public class IdleBotMain {
                 if (wText.equals(windowName)) {
                     try {
                         Rectangle rect1 = getRect(wText);
-                        if(rect1.width != expectedWidth || rect1.height != expectedHeight){
+                        if (rect1.width > expectedWidth || rect1.height > expectedHeight) {
                             System.out.println("Found flashplayer but width and height were wrong.");
-                            //return true;
+                            return true;
                         }
                         rect.setBounds(rect1.x, rect1.y, rect1.width, rect1.height);
                         System.out.printf("The corner locations for the window \"%s\" are %s", wText, rect1);
