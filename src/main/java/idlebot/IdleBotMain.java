@@ -3,6 +3,7 @@ package idlebot;
 import java.awt.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
@@ -43,19 +44,20 @@ public class IdleBotMain {
 
         //System.out.println(String.format("0x%08X", -220392));
 
-        ArcadeNavigator arcadeNavigator = new ArcadeNavigator(game);
-        MmrXPlayer mmrXPlayer = new MmrXPlayer(game);
-        arcadeNavigator.clickPlay();
-        mmrXPlayer.play();
-        arcadeNavigator.clickBack();
-
         //playGreg(antiIdleRect, game);
-
-/*        BalancePlayer balancePlayer = new BalancePlayer(game);
-        for (int i = 0; i < 20; i++) {
-            balancePlayer.playBalance(false);
+        ArrayList<Integer> scores = new ArrayList<>();
+        BalancePlayer balancePlayer = new BalancePlayer(game);
+        for (int i = 0; i < 12; i++) {
+            int blocksPlaces = balancePlayer.playBalance(true);
+            scores.add(blocksPlaces);
+            if (blocksPlaces > 1000) {
+                game.screenshotGame("images/Good balance score - " + UUID.randomUUID() + ".bmp");
+            }
             game.clickWithinGameWithUiUpdateDelay(252, 391);
-        }*/
+        }
+        System.out.println(scores);
+        System.out.println("Avg: " + (scores.stream().reduce(Integer::sum).get() / scores.size()));
+
 
     }
 

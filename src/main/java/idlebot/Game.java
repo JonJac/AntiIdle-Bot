@@ -12,7 +12,7 @@ public class Game {
     private Rectangle antiIdleRect;
     private final Object lock = new Object();
     private Robot robot;
-    private static final int keyPressDelayMs = 20;
+    private static final int keyPressDelayMs = 40;
 
     public Game(Rectangle antiIdleRect) throws AWTException {
         this.antiIdleRect = antiIdleRect;

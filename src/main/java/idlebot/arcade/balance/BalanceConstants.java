@@ -70,16 +70,6 @@ public class BalanceConstants {
         MENU_COLOR_NEXT.forEach(integer -> rgbNextMap.put(integer, MenuAfterEndedGame));
     }
 
-
-    static final Map<Integer, Integer> laneMap;
-
-    static {
-        laneMap = new HashMap<>();
-        laneMap.put(LANE_1_X, 0);
-        laneMap.put(LANE_2_X, 1);
-        laneMap.put(LANE_3_X, 2);
-    }
-
     static int black = -16777216;
     static int white = -1;
 
@@ -123,4 +113,29 @@ public class BalanceConstants {
             new XyTriple(7, 28, white),
             new XyTriple(17, 19, white),
     };
+
+    static final Map<Integer, Integer> laneMap;
+
+    static {
+        laneMap = new HashMap<>();
+        laneMap.put(LANE_1_X, 0);
+        laneMap.put(LANE_2_X, 1);
+        laneMap.put(LANE_3_X, 2);
+    }
+
+    static XyTriple[] xyLaneRed = new XyTriple[]{
+            new XyTriple(16, 6, white),
+            new XyTriple(24, 8, black),
+    };
+
+    static XyTriple[] xyLaneGreen = new XyTriple[]{
+            new XyTriple(24, 10, white),
+            new XyTriple(21, 13, black),
+    };
+
+    static XyTriple[] xyLaneYellow = new XyTriple[]{
+            new XyTriple(17, 6, black),
+            new XyTriple(21, 4, white),
+    };
+
 }
