@@ -42,6 +42,7 @@ public class WhackAGregPlayer {
         }
     }
 
+    //should be limited to 330 greg clicks for 6.0 rating. Anything more does nothing
     public void playAGameOfGreg(Rectangle antiIdleRect) throws IOException, InterruptedException {
         MultiLayerNetwork model = ModelSerializer.restoreMultiLayerNetwork("greg.model");
         for (int i = 0; i < 1; i++) {
@@ -90,22 +91,22 @@ public class WhackAGregPlayer {
                                 clickCount.incrementAndGet();
 
                                 //synchronized (lock) {
-                                    Rectangle gregRect = new Rectangle(
-                                            antiIdleRect.x + x1,
-                                            antiIdleRect.y + y1,
-                                            WhackAGregConstants.SQUARE_WIDTH, WhackAGregConstants.SQUARE_HEIGHT);
-                                    if (lastClickedMap.get(gregRect) == null || lastClickedMap.get(gregRect) < System.currentTimeMillis() - timeSinceLastClickMs) {
+                                Rectangle gregRect = new Rectangle(
+                                        antiIdleRect.x + x1,
+                                        antiIdleRect.y + y1,
+                                        WhackAGregConstants.SQUARE_WIDTH, WhackAGregConstants.SQUARE_HEIGHT);
+                                if (lastClickedMap.get(gregRect) == null || lastClickedMap.get(gregRect) < System.currentTimeMillis() - timeSinceLastClickMs) {
 /*                                    BufferedImage screenCapture = robot.createScreenCapture(gregRect);
                                     int guess = prediction(model, loader, square)[0];
                                     System.out.println("prediction: " + guess);
                                     if(GregClassifier.stuffToClick.contains(guess)){
                                         ImageIO.write(screenCapture, "bmp", new File("images/" + UUID.randomUUID() + ".bmp"));
                                     }*/
-                                        game.clickWithinGame(x1 + WhackAGregConstants.SQUARE_WIDTH / 2, y1 + WhackAGregConstants.SQUARE_HEIGHT / 2);
-                                        lastClickedMap.put(gregRect, System.currentTimeMillis());
-                                    } else {
-                                        //ImageIO.write(square, "bmp", new File("images/" + UUID.randomUUID() + ".bmp"));
-                                    }
+                                    game.clickWithinGame(x1 + WhackAGregConstants.SQUARE_WIDTH / 2, y1 + WhackAGregConstants.SQUARE_HEIGHT / 2);
+                                    lastClickedMap.put(gregRect, System.currentTimeMillis());
+                                } else {
+                                    //ImageIO.write(square, "bmp", new File("images/" + UUID.randomUUID() + ".bmp"));
+                                }
                                 // }
                             }
 

@@ -1,6 +1,7 @@
 package idlebot.arcade.whackagreg;
 
 import idlebot.Game;
+import idlebot.XyTriple;
 import ml.GregClassifier;
 import org.datavec.image.loader.NativeImageLoader;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
@@ -12,7 +13,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.List;
 
 import static idlebot.arcade.whackagreg.WhackAGregConstants.*;
 import static java.awt.image.BufferedImage.TYPE_BYTE_BINARY;
@@ -20,7 +20,7 @@ import static ml.ModelUtil.predict;
 
 public class WhackAGregPlayerThreaded {
     private Robot robot;
-    private final int timeSinceLastClickMs = 80;
+    private final int timeSinceLastClickMs = 100;
     private Game game;
 
     public WhackAGregPlayerThreaded(Game game) {
@@ -28,7 +28,7 @@ public class WhackAGregPlayerThreaded {
     }
 
     public void playAGameOfGreg(Rectangle antiIdleRect, int column, ScreenShotContainer screenShotContainer) {
-        MultiLayerNetwork model = loadModelFromDisk();
+        //MultiLayerNetwork model = loadModelFromDisk();
         NativeImageLoader loader = new NativeImageLoader(40, 40);
 
         {
@@ -51,7 +51,6 @@ public class WhackAGregPlayerThreaded {
                 loopCount = loopCount + 1;
 
                 BufferedImage square = screenShotContainer.gameScreenShot.getSubimage(x1, y1, WhackAGregConstants.SQUARE_WIDTH, WhackAGregConstants.SQUARE_HEIGHT);
-
                 blackAndWhite.createGraphics().drawImage(square, 0, 0, null);
 
                 //MenuCheck
@@ -61,63 +60,16 @@ public class WhackAGregPlayerThreaded {
                     break;
                 }
 
-                //The real implementaiton
+                //The real implementation
                 if (check(WhackAGregConstants.xyGoodGreg, blackAndWhite) || check(WhackAGregConstants.xyAwesome, blackAndWhite) || check(xyMultiplier, blackAndWhite)) {
-/*                    try {
-                        ImageIO.write(blackAndWhite, "bmp", new File("images/" + UUID.randomUUID() + ".bmp"));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }*/
-
                     if (lastClickedMap.get(y) == null || lastClickedMap.get(y) < System.currentTimeMillis() - timeSinceLastClickMs) {
                         game.clickWithinGame(WhackAGregConstants.RELATIVE_TOP_LEFT_X + x1 + WhackAGregConstants.SQUARE_WIDTH / 2, WhackAGregConstants.RELATIVE_TOP_LEFT_Y + y1 + WhackAGregConstants.SQUARE_HEIGHT / 2);
                         lastClickedMap.put(y, System.currentTimeMillis());
                     }
                 }
 
-/*
-                try {
-                    int prediction = predict(model, loader, square);
+                //oldPrediction(model, loader, lastClickedMap, blackAndWhite, y, x1, y1, square);
 
-                    if(prediction != 1 && prediction != 6){
-                        if(prediction == 2 && !check(xyAwesome, blackAndWhite) ){
-                            System.out.println("Missmatch, prediction was : " + prediction);
-                            ImageIO.write(blackAndWhite, "bmp", new File("images/" + UUID.randomUUID() + ".bmp"));
-                        }
-                        if(prediction == 3 && !check(xyGoodGreg, blackAndWhite) ){
-                            System.out.println("Missmatch, prediction was : " + prediction);
-                            ImageIO.write(blackAndWhite, "bmp", new File("images/" + UUID.randomUUID() + ".bmp"));
-                        }
-                        if(prediction == 4 && !check(xyMultiplier, blackAndWhite) ){
-                            System.out.println("Missmatch, prediction was : " + prediction);
-                            ImageIO.write(blackAndWhite, "bmp", new File("images/" + UUID.randomUUID() + ".bmp"));
-                        }
-                        else if(prediction != 2 && check(xyAwesome, blackAndWhite)){
-                            System.out.println("I thought prediction " + prediction + " was a awesome face");
-                        }
-                        else if(prediction != 3 && check(xyGoodGreg, blackAndWhite)){
-                            System.out.println("I thought prediction " + prediction + " was a good greg");
-                        }
-                        else if(prediction != 4 && check(xyMultiplier, blackAndWhite)){
-                            System.out.println("I thought prediction " + prediction + " was a multiplier");
-                        }
-                    }
-
-                    if (GregClassifier.stuffToClick.contains(prediction)) {
-                        Rectangle gregRect = new Rectangle(
-                                antiIdleRect.x + x1,
-                                antiIdleRect.y + y1,
-                                WhackAGregConstants.SQUARE_WIDTH, WhackAGregConstants.SQUARE_HEIGHT);
-                        if (lastClickedMap.get(gregRect) == null || lastClickedMap.get(gregRect) < System.currentTimeMillis() - timeSinceLastClickMs) {
-                            game.clickWithinGame(WhackAGregConstants.RELATIVE_TOP_LEFT_X + x1 + WhackAGregConstants.SQUARE_WIDTH / 2, WhackAGregConstants.RELATIVE_TOP_LEFT_Y + y1 + WhackAGregConstants.SQUARE_HEIGHT / 2);
-                            lastClickedMap.put(gregRect, System.currentTimeMillis());
-                        }
-                    }
-
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-*/
             }
 
 
@@ -132,9 +84,46 @@ public class WhackAGregPlayerThreaded {
         }*/
     }
 
-    private boolean check(WhackAGregConstants.XyTriple[] xyGoodGreg, BufferedImage blackAndWhite) {
+    private void oldPrediction(MultiLayerNetwork model, NativeImageLoader loader, Map<Integer, Long> lastClickedMap, BufferedImage blackAndWhite, int y, int x1, int y1, BufferedImage square) {
+        try {
+            int prediction = predict(model, loader, square);
+
+            if (prediction != 1 && prediction != 6) {
+                if (prediction == 2 && !check(xyAwesome, blackAndWhite)) {
+                    System.out.println("Missmatch, prediction was : " + prediction);
+                    ImageIO.write(blackAndWhite, "bmp", new File("images/" + UUID.randomUUID() + ".bmp"));
+                }
+                if (prediction == 3 && !check(xyGoodGreg, blackAndWhite)) {
+                    System.out.println("Missmatch, prediction was : " + prediction);
+                    ImageIO.write(blackAndWhite, "bmp", new File("images/" + UUID.randomUUID() + ".bmp"));
+                }
+                if (prediction == 4 && !check(xyMultiplier, blackAndWhite)) {
+                    System.out.println("Missmatch, prediction was : " + prediction);
+                    ImageIO.write(blackAndWhite, "bmp", new File("images/" + UUID.randomUUID() + ".bmp"));
+                } else if (prediction != 2 && check(xyAwesome, blackAndWhite)) {
+                    System.out.println("I thought prediction " + prediction + " was a awesome face");
+                } else if (prediction != 3 && check(xyGoodGreg, blackAndWhite)) {
+                    System.out.println("I thought prediction " + prediction + " was a good greg");
+                } else if (prediction != 4 && check(xyMultiplier, blackAndWhite)) {
+                    System.out.println("I thought prediction " + prediction + " was a multiplier");
+                }
+            }
+
+            if (GregClassifier.stuffToClick.contains(prediction)) {
+                if (lastClickedMap.get(y) == null || lastClickedMap.get(y) < System.currentTimeMillis() - timeSinceLastClickMs) {
+                    game.clickWithinGame(WhackAGregConstants.RELATIVE_TOP_LEFT_X + x1 + WhackAGregConstants.SQUARE_WIDTH / 2, WhackAGregConstants.RELATIVE_TOP_LEFT_Y + y1 + WhackAGregConstants.SQUARE_HEIGHT / 2);
+                    lastClickedMap.put(y, System.currentTimeMillis());
+                }
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private boolean check(XyTriple[] xyGoodGreg, BufferedImage blackAndWhite) {
         boolean result = true;
-        for (WhackAGregConstants.XyTriple triple : xyGoodGreg) {
+        for (XyTriple triple : xyGoodGreg) {
             if (blackAndWhite.getRGB(triple.x - 1, triple.y - 1) != triple.color) {
                 result = false;
                 //System.out.println(triple + ", was " + blackAndWhite.getRGB(triple.x - 1,triple.y - 1));

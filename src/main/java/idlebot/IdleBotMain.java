@@ -23,11 +23,15 @@ import idlebot.fishing.FishingPlayer;
 import static java.lang.Thread.MAX_PRIORITY;
 
 public class IdleBotMain {
-    private static int expectedWidth = 680;
-    private static int expectedHeight = 720;
+    private static int expectedWidth = 690;
+    private static int expectedHeight = 740;
 
     public static void main(String[] args) throws AWTException, IOException, InterruptedException {
         Rectangle antiIdleRect = getWindowForProcess("Adobe Flash Player 9");
+        if (antiIdleRect.height == 0) {
+            System.out.println("could not find game window");
+            return;
+        }
 
         System.out.println("AntiIdleRect: " + antiIdleRect);
         Game game = new Game(antiIdleRect);
@@ -38,6 +42,24 @@ public class IdleBotMain {
         //gamePlayer.play();
 
         //System.out.println(String.format("0x%08X", -220392));
+
+        ArcadeNavigator arcadeNavigator = new ArcadeNavigator(game);
+        MmrXPlayer mmrXPlayer = new MmrXPlayer(game);
+        arcadeNavigator.clickPlay();
+        mmrXPlayer.play();
+        arcadeNavigator.clickBack();
+
+        //playGreg(antiIdleRect, game);
+
+/*        BalancePlayer balancePlayer = new BalancePlayer(game);
+        for (int i = 0; i < 20; i++) {
+            balancePlayer.playBalance(false);
+            game.clickWithinGameWithUiUpdateDelay(252, 391);
+        }*/
+
+    }
+
+    private static void playGreg(Rectangle antiIdleRect, Game game) throws InterruptedException {
         ScreenShotContainer screenShotContainer = new ScreenShotContainer();
         Thread screenThread = new Thread(() -> screenShotContainer.startScreenCapturing(new Rectangle(antiIdleRect.x + WhackAGregConstants.RELATIVE_TOP_LEFT_X, antiIdleRect.y + WhackAGregConstants.RELATIVE_TOP_LEFT_Y, WhackAGregConstants.SQUARE_WIDTH * WhackAGregConstants.SQUARE_X_AMOUNT, WhackAGregConstants.SQUARE_HEIGHT * WhackAGregConstants.SQUARE_Y_AMOUNT)));
         screenThread.setPriority(MAX_PRIORITY);
@@ -54,10 +76,12 @@ public class IdleBotMain {
         for (Thread thread : threads) {
             thread.join();
         }
-
     }
 
     private static void oldShit(Rectangle antiIdleRect, Game game) throws IOException, InterruptedException {
+        playGreg(antiIdleRect, game);
+
+
         ButtonPlayer buttonPlayer = new ButtonPlayer(game);
         for (int i = 0; i < 5000; i++) {
             buttonPlayer.play();

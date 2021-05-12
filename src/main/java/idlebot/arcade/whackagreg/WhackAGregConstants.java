@@ -1,5 +1,7 @@
 package idlebot.arcade.whackagreg;
 
+import idlebot.XyTriple;
+
 public class WhackAGregConstants {
     public static int RELATIVE_TOP_LEFT_X = 29;
     public static int RELATIVE_TOP_LEFT_Y = 171;
@@ -64,22 +66,4 @@ public class WhackAGregConstants {
             new XyTriple(19, 5, white),
     };
 
-    static class XyTriple {
-        int x, y, color;
-
-        public XyTriple(int x, int y, int color) {
-            this.x = x;
-            this.y = y;
-            this.color = color;
-        }
-
-        @Override
-        public String toString() {
-            return "XyTriple{" +
-                    "x=" + x +
-                    ", y=" + y +
-                    ", color=" + color +
-                    '}';
-        }
-    }
 }

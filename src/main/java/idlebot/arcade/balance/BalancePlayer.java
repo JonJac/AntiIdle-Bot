@@ -1,6 +1,7 @@
 package idlebot.arcade.balance;
 
 import idlebot.Game;
+import idlebot.XyTriple;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -9,21 +10,28 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Stack;
+import java.util.UUID;
 
 import static idlebot.arcade.balance.BalanceConstants.*;
 import static idlebot.arcade.balance.BalanceSquare.*;
+import static java.awt.image.BufferedImage.TYPE_BYTE_BINARY;
 
 public class BalancePlayer {
     private Game game;
     private int waitAfterKeyPressMs = 30;
     private int waitBeforeDetectingMs = 20;
     private int blockCountBeforeForceEndingGame = 500;
+    private final int nextSquareScreenShotWidth = 35;
+    private BufferedImage blackAndWhiteNext = new BufferedImage(nextSquareScreenShotWidth, 30, TYPE_BYTE_BINARY);
+    private int[] laneDepth = new int[3];
 
     public BalancePlayer(Game game) {
         this.game = game;
     }
 
     public void playBalance(boolean attemptMaxScore) {
+        laneDepth = new int[3];
+
         clickStart();
         waitMs(3300);
 
@@ -35,7 +43,13 @@ public class BalancePlayer {
         int count = 0;
         //Problem: How to determine what the unknown sqaure was?
         while (true) {
-            BalanceSquare nextSquare = getNextSquare();
+            BalanceSquare nextSquare = getNextSquareUsingColor();
+            BalanceSquare nextSquareUsingSymbol = getNextSquareUsingSymbol();
+/*            if(nextSquare != nextSquareUsingSymbol){
+                System.out.println("Missmatch with next: " + nextSquare + " was detected as " + nextSquareUsingSymbol);
+                BufferedImage bufferedImage = game.screenShot(new Rectangle(82, 224, nextSquareScreenShotWidth, 30));
+                writeNextSquareImageAsBW(bufferedImage);
+            }*/
             System.out.println("next square: " + nextSquare);
             if (nextSquare == null) {
                 saveDebugImageOfGame();
@@ -111,7 +125,8 @@ public class BalancePlayer {
         waitMs(waitAfterKeyPressMs);
         if (nextSquare == Unknown) {
             waitMs(waitBeforeDetectingMs);
-            nextSquare = detectUnknown(laneXCoordinate);
+            detectUnknownWithSymbol(laneXCoordinate);
+            nextSquare = detectUnknownWithColor(laneXCoordinate);
         }
         if (nextSquare == Unknown) {
             //We don't know how the current state, so just clear it and play on
@@ -139,7 +154,26 @@ public class BalancePlayer {
         return minIndex;
     }
 
-    private BalanceSquare detectUnknown(int laneX) {
+
+    private BalanceSquare detectUnknownWithSymbol(int laneX) {
+
+        BufferedImage bufferedImage = game.screenShot(new Rectangle(laneX - 8, LANE_WINDOW_Y, 42, LANE_WINDOW_HEIGHT));
+        //writeLaneSquareImageAsBW(bufferedImage);
+
+        int whiteCount = 0;
+        while (bwLaneSquareMapping(21, whiteCount, bufferedImage) == white) {
+            whiteCount++;
+        }
+
+
+        //first black pixel = how far down is the lane
+        //4x white pixel = we are the bottom
+        //5-6x white pixel, we need to detect symbol
+
+        return Unknown;
+    }
+
+    private BalanceSquare detectUnknownWithColor(int laneX) {
         int count = 0;
         while (count < 30) {
             BufferedImage bufferedImage = game.screenShot(new Rectangle(laneX, LANE_WINDOW_Y, 1, LANE_WINDOW_HEIGHT));
@@ -182,8 +216,10 @@ public class BalancePlayer {
     }
 
     private void clear2InARow(Stack<BalanceSquare> lane) {
-        lane.pop();
-        lane.pop();
+        if (lane.size() >= 2 && lane.get(1) == lane.get(0)) {
+            lane.pop();
+            lane.pop();
+        }
     }
 
 
@@ -203,14 +239,111 @@ public class BalancePlayer {
         }
     }
 
-    private BalanceSquare getNextSquare() {
+    private BalanceSquare getNextSquareUsingSymbol() {
+        BufferedImage bufferedImage = game.screenShot(new Rectangle(82, 224, nextSquareScreenShotWidth, 30));
+        //writeImageAsBW(bufferedImage);
+        if (check(xyNextRed, bufferedImage)) {
+            return Red;
+        }
+        if (check(xyNextYellow, bufferedImage)) {
+            return Yellow;
+        }
+        if (check(xyNextGreen, bufferedImage)) {
+            return Green;
+        }
+        if (check(xyNextPurple, bufferedImage)) {
+            return Purple;
+        }
+        if (check(xyNextUnknown, bufferedImage)) {
+            return Unknown;
+        }
+
+        return MenuAfterEndedGame;
+    }
+
+    private void writeLaneSquareImageAsBW(BufferedImage bufferedImage) {
+        BufferedImage blackAndWhiteNext = new BufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(), TYPE_BYTE_BINARY);
+
+        for (int x = 0; x < blackAndWhiteNext.getWidth(); x++) {
+            for (int y = 0; y < blackAndWhiteNext.getHeight(); y++) {
+                blackAndWhiteNext.setRGB(x, y, bwLaneSquareMapping(x, y, bufferedImage));
+            }
+        }
+        try {
+            ImageIO.write(bufferedImage, "bmp", new File("images/" + UUID.randomUUID() + ".bmp"));
+            ImageIO.write(blackAndWhiteNext, "bmp", new File("images/" + UUID.randomUUID() + ".bmp"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private int bwLaneSquareMapping(int x, int y, BufferedImage bufferedImage) {
+        //Gray = 0.299×Red + 0.587×Green + 0.114×Blue
+        int rgb = bufferedImage.getRGB(x, y);
+        int blue = rgb & 0xFF;
+        int green = (rgb >> 8) & 0xFF;
+        int red = (rgb >> 16) & 0xFF;
+        if (Math.abs(red - green) < 4) { //yellow square case
+            if (0.52 * red + 0.52 * green + 0.10 * blue > 156) {
+                return white;
+            }
+        } else {
+            if (0.55 * red + 0.55 * green + 0.55 * blue > 150) {
+                return white;
+            }
+        }
+        return black;
+    }
+
+    private void writeNextSquareImageAsBW(BufferedImage bufferedImage) {
+        BufferedImage blackAndWhiteNext = new BufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(), TYPE_BYTE_BINARY);
+        for (int x = 0; x < blackAndWhiteNext.getWidth(); x++) {
+            for (int y = 0; y < blackAndWhiteNext.getHeight(); y++) {
+                blackAndWhiteNext.setRGB(x, y, bwNextSquareMapping(x, y, bufferedImage));
+            }
+        }
+        try {
+            ImageIO.write(blackAndWhiteNext, "bmp", new File("images/" + UUID.randomUUID() + ".bmp"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private int bwNextSquareMapping(int x, int y, BufferedImage bufferedImage) {
+        //Gray = 0.299×Red + 0.587×Green + 0.114×Blue
+        int rgb = bufferedImage.getRGB(x, y);
+        int blue = rgb & 0xFF;
+        int green = (rgb >> 8) & 0xFF;
+        int red = (rgb >> 16) & 0xFF;
+        if (0.6 * red + 0.6 * green + 0.6 * blue > 128) {
+            return black;
+        }
+        return white;
+    }
+
+    private BalanceSquare getNextSquareUsingColor() {
         BufferedImage bufferedImage = game.screenShot(new Rectangle(NEXT_SQUARE_X, NEXT_SQUARE_Y, 1, 1));
         int rgb = bufferedImage.getRGB(0, 0);
-        return rgbNextMap.get(rgb);
+        BalanceSquare square = rgbNextMap.get(rgb);
+        if (square == null) {
+            System.out.println("null value: " + String.format("0x%08X", rgb));
+        }
+        return square;
     }
 
     private void clickStart() {
         game.clickWithinGame(START_BUTTON_X, START_BUTTON_Y);
     }
 
+    private boolean check(XyTriple[] xyGoodGreg, BufferedImage toBeBlackAndWhite) {
+        boolean result = true;
+        for (XyTriple triple : xyGoodGreg) {
+            if (bwNextSquareMapping(triple.x - 1, triple.y - 1, toBeBlackAndWhite) != triple.color) {
+                result = false;
+                //System.out.println(triple + ", was " + blackAndWhite.getRGB(triple.x - 1,triple.y - 1));
+            }
+        }
+
+        return result;
+    }
 }
