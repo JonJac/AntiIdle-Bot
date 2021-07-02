@@ -23,9 +23,9 @@ public class ButtonPlayer {
         this.game = game;
     }
 
-    public void play() throws IOException {
-        shopMultiplersAndRewards();
-        clickTimes(2000);
+    public void play(int amount) throws IOException {
+        //shopMultiplersAndRewards();
+        clickTimes(amount);
     }
 
     private void clickTimes(int clicks) throws IOException {
@@ -36,7 +36,7 @@ public class ButtonPlayer {
         for (int k = 0; k < clicks * clickRegistryFactor; k++) { //Game does not r
             buttonScreenshot = game.screenShot(CIRCLE_AREA);
             Point point = getCircleCenter(buttonScreenshot);
-            if (legalPoint(point)) {//not sure why +2 :P Maybe rounding
+            if (legalPoint(point)) {
                 if (potentialPerfectsInARow >= maxPerfectsInARow - 1) {
                     game.clickWithinGame(point.x - 2, point.y + 2); //avoid perfect click
                     potentialPerfectsInARow = 0;
@@ -86,7 +86,7 @@ public class ButtonPlayer {
     }
 
     private boolean legalPoint(Point point) {
-        return (point.x > CIRCLE_AREA_X && point.x <= CIRCLE_AREA_X + CIRCLE_AREA_WIDTH && point.y > CIRCLE_AREA_Y && point.y <= CIRCLE_AREA_Y + CIRCLE_AREA_HEIGHT + 2)
+        return (point.x > CIRCLE_AREA_X && point.x <= CIRCLE_AREA_X + CIRCLE_AREA_WIDTH && point.y > CIRCLE_AREA_Y && point.y <= CIRCLE_AREA_Y + CIRCLE_AREA_HEIGHT + 2) //not sure why +2 :P Maybe rounding
                 || (point.x == 98 && point.y == 451);
     }
 

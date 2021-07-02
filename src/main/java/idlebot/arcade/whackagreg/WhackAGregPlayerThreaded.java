@@ -16,10 +16,10 @@ import java.util.*;
 
 import static idlebot.arcade.whackagreg.WhackAGregConstants.*;
 import static java.awt.image.BufferedImage.TYPE_BYTE_BINARY;
+import static java.lang.Thread.MAX_PRIORITY;
 import static ml.ModelUtil.predict;
 
 public class WhackAGregPlayerThreaded {
-    private Robot robot;
     private final int timeSinceLastClickMs = 100;
     private Game game;
 
@@ -27,7 +27,40 @@ public class WhackAGregPlayerThreaded {
         this.game = game;
     }
 
-    public void playAGameOfGreg(Rectangle antiIdleRect, int column, ScreenShotContainer screenShotContainer) {
+    public void playWAG() {
+        playWAG(Integer.MAX_VALUE);
+    }
+
+    public void playWAG(int limit) {
+        Rectangle antiIdleRect = game.getAntiIdleRect();
+
+        ScreenShotContainer screenShotContainer = new ScreenShotContainer();
+        Thread screenThread = new Thread(() -> screenShotContainer.startScreenCapturing(new Rectangle(antiIdleRect.x + WhackAGregConstants.RELATIVE_TOP_LEFT_X, antiIdleRect.y + WhackAGregConstants.RELATIVE_TOP_LEFT_Y, WhackAGregConstants.SQUARE_WIDTH * WhackAGregConstants.SQUARE_X_AMOUNT, WhackAGregConstants.SQUARE_HEIGHT * WhackAGregConstants.SQUARE_Y_AMOUNT)));
+        screenThread.setPriority(MAX_PRIORITY);
+        screenThread.start();
+
+        WhackAGregPlayerThreaded whackAGregPlayer = new WhackAGregPlayerThreaded(game);
+        ArrayList<Thread> threads = new ArrayList<>();
+
+        for (int i = 0; i < 12; i++) {
+            final int column = i;
+            threads.add(new Thread(() -> whackAGregPlayer.internalPlayAGameOfGreg(column, screenShotContainer, limit)));
+        }
+        threads.forEach(Thread::start);
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        //click back
+        game.waitMs(2000);
+        game.clickWithinGameWithUiUpdateDelay(260, 395);
+    }
+
+    public void internalPlayAGameOfGreg(int column, ScreenShotContainer screenShotContainer, int limit) {
         //MultiLayerNetwork model = loadModelFromDisk();
         NativeImageLoader loader = new NativeImageLoader(40, 40);
 
@@ -65,23 +98,27 @@ public class WhackAGregPlayerThreaded {
                     if (lastClickedMap.get(y) == null || lastClickedMap.get(y) < System.currentTimeMillis() - timeSinceLastClickMs) {
                         game.clickWithinGame(WhackAGregConstants.RELATIVE_TOP_LEFT_X + x1 + WhackAGregConstants.SQUARE_WIDTH / 2, WhackAGregConstants.RELATIVE_TOP_LEFT_Y + y1 + WhackAGregConstants.SQUARE_HEIGHT / 2);
                         lastClickedMap.put(y, System.currentTimeMillis());
+                        suicideIfAboveClickLimit(limit, screenShotContainer, x1, y1);
                     }
                 }
 
                 //oldPrediction(model, loader, lastClickedMap, blackAndWhite, y, x1, y1, square);
-
             }
-
 
             totalTime = totalTime + (System.nanoTime() - totalStart);
         }
 
         System.out.println("Column: " + column + ", ms/square: " + (totalTime / 1_000_000) / loopCount);
+    }
 
-/*        {
-            game.waitMs(2000);
-            game.clickWithinGameWithUiUpdateDelay(260, 395);
-        }*/
+    private void suicideIfAboveClickLimit(int limit, ScreenShotContainer screenShotContainer, int x1, int y1) {
+        if (screenShotContainer.clickCount.incrementAndGet() > limit) {
+            game.clickWithinGame(WhackAGregConstants.RELATIVE_TOP_LEFT_X + x1 + WhackAGregConstants.SQUARE_WIDTH / 2, WhackAGregConstants.RELATIVE_TOP_LEFT_Y + y1 + WhackAGregConstants.SQUARE_HEIGHT / 2);
+            game.clickWithinGame(WhackAGregConstants.RELATIVE_TOP_LEFT_X + x1 + WhackAGregConstants.SQUARE_WIDTH / 2, WhackAGregConstants.RELATIVE_TOP_LEFT_Y + y1 + WhackAGregConstants.SQUARE_HEIGHT / 2);
+            game.clickWithinGame(WhackAGregConstants.RELATIVE_TOP_LEFT_X + x1 + WhackAGregConstants.SQUARE_WIDTH / 2, WhackAGregConstants.RELATIVE_TOP_LEFT_Y + y1 + WhackAGregConstants.SQUARE_HEIGHT / 2);
+            game.clickWithinGame(WhackAGregConstants.RELATIVE_TOP_LEFT_X + x1 + WhackAGregConstants.SQUARE_WIDTH / 2, WhackAGregConstants.RELATIVE_TOP_LEFT_Y + y1 + WhackAGregConstants.SQUARE_HEIGHT / 2);
+            game.clickWithinGame(WhackAGregConstants.RELATIVE_TOP_LEFT_X + x1 + WhackAGregConstants.SQUARE_WIDTH / 2, WhackAGregConstants.RELATIVE_TOP_LEFT_Y + y1 + WhackAGregConstants.SQUARE_HEIGHT / 2);
+        }
     }
 
     private void oldPrediction(MultiLayerNetwork model, NativeImageLoader loader, Map<Integer, Long> lastClickedMap, BufferedImage blackAndWhite, int y, int x1, int y1, BufferedImage square) {

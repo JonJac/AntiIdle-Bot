@@ -35,7 +35,7 @@ public class MmrXPlayer {
                 int rgbSave = bufferedImage.getRGB(laneX, 9);
 
                 if (rgb == MENU) {
-                    return;
+                    //return;
                 } else if (RED.contains(rgb) || RED.contains(rgbSave)) {
                     reds++;
                 } else if (GREEN.contains(rgb) || GREEN.contains(rgbSave)) {

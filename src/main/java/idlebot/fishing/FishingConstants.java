@@ -13,5 +13,6 @@ public class FishingConstants {
     public static final java.util.List<Integer> BLUE_INDICATOR_COLORS = List.of(0xFF00F2F2);
     public static final java.util.List<Integer> BLUE_BACKGROUND_COLORS = List.of(0xFF004d54, 0xFF004d55);
 
-    static int BLUE_INDICATOR_COLOR = 0xFF00F2F2;
+    //static int BLUE_INDICATOR_COLOR = 0xFF00F2F2;
+    static int BLUE_INDICATOR_COLOR = 0xFF00F2F3;
 }

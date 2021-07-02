@@ -2,11 +2,13 @@ package idlebot.arcade.whackagreg;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ScreenShotContainer {
     BufferedImage gameScreenShot;
     private boolean run;
     private Robot robot;
+    public AtomicInteger clickCount = new AtomicInteger();
 
     public ScreenShotContainer() {
         try {

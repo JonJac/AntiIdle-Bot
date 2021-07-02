@@ -45,20 +45,47 @@ public class IdleBotMain {
         //System.out.println(String.format("0x%08X", -220392));
 
         //playGreg(antiIdleRect, game);
+
+        ButtonPlayer buttonPlayer = new ButtonPlayer(game);
+        for (int i = 0; i < 1; i++) {
+            //buttonPlayer.play(100);
+        }
+
+
+        maxBalanceScoreAttemts(game);
+
+
+    }
+
+    private static void maxBalanceScoreAttemts(Game game) throws IOException {
+        ArcadeNavigator arcadeNavigator = new ArcadeNavigator(game);
         ArrayList<Integer> scores = new ArrayList<>();
+        ArrayList<Long> times = new ArrayList<>();
         BalancePlayer balancePlayer = new BalancePlayer(game);
-        for (int i = 0; i < 12; i++) {
-            int blocksPlaces = balancePlayer.playBalance(true);
+        for (int i = 0; i < 10000; i++) {
+            long time = System.currentTimeMillis();
+            int blocksPlaces = balancePlayer.playBalance(false);
+            long timeSpent = System.currentTimeMillis() - time;
+            times.add(timeSpent);
             scores.add(blocksPlaces);
-            if (blocksPlaces > 1000) {
+            System.out.println("score:" + scores);
+            System.out.println("time in ms:" + times);
+            if (blocksPlaces > 2500) {
                 game.screenshotGame("images/Good balance score - " + UUID.randomUUID() + ".bmp");
             }
+            System.out.println("waiting 4 secs for viewers :)");
+            //game.waitMs(4000);
             game.clickWithinGameWithUiUpdateDelay(252, 391);
+            if (i % 10 == 0) {
+                arcadeNavigator.clickBack();
+                arcadeNavigator.buyTokens();
+                arcadeNavigator.clickBalance3();
+                //arcadeNavigator.buyBonusExp();
+            }
         }
         System.out.println(scores);
-        System.out.println("Avg: " + (scores.stream().reduce(Integer::sum).get() / scores.size()));
-
-
+        System.out.println("Avg score: " + (scores.stream().reduce(Integer::sum).get() / scores.size()));
+        System.out.println("Avg time: " + (times.stream().reduce(Long::sum).get() / times.size()));
     }
 
     private static void playGreg(Rectangle antiIdleRect, Game game) throws InterruptedException {
@@ -72,7 +99,7 @@ public class IdleBotMain {
 
         for (int i = 0; i < 12; i++) {
             final int column = i;
-            threads.add(new Thread(() -> whackAGregPlayer.playAGameOfGreg(antiIdleRect, column, screenShotContainer)));
+            threads.add(new Thread(() -> whackAGregPlayer.internalPlayAGameOfGreg(column, screenShotContainer, Integer.MAX_VALUE)));
         }
         threads.forEach(Thread::start);
         for (Thread thread : threads) {
@@ -86,7 +113,7 @@ public class IdleBotMain {
 
         ButtonPlayer buttonPlayer = new ButtonPlayer(game);
         for (int i = 0; i < 5000; i++) {
-            buttonPlayer.play();
+            buttonPlayer.play(2000);
         }
 
         AvoidancePlayer avoidancePlayer = new AvoidancePlayer(game);
@@ -115,8 +142,8 @@ public class IdleBotMain {
     }
 
     private static GamePlayer createGamePlayer(Game game) {
-        return new GamePlayer(game, new AvoidancePlayer(game), new BalancePlayer(game), new WhackAGregPlayer(game), new ButtonPlayer(game), new FishingPlayer(game), new BattleArenaPlayer(game), new BoostController(game), new DragonController(game),
-                new GameNavigator(game), new ProgressController(game), new ShopController(game));
+        return new GamePlayer(game, new AvoidancePlayer(game), new BalancePlayer(game), new WhackAGregPlayerThreaded(game), new ButtonPlayer(game), new FishingPlayer(game), new BattleArenaPlayer(game), new BoostController(game), new DragonController(game),
+                new GameNavigator(game), new ProgressController(game), new ShopController(game), new ArcadeNavigator(game), new CardsController(game));
     }
 
     public static Rectangle getWindowForProcess(String windowName) {

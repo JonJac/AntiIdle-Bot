@@ -12,11 +12,15 @@ public class Game {
     private Rectangle antiIdleRect;
     private final Object lock = new Object();
     private Robot robot;
-    private static final int keyPressDelayMs = 40;
+    private static final int keyPressDelayMs = 50;
 
     public Game(Rectangle antiIdleRect) throws AWTException {
         this.antiIdleRect = antiIdleRect;
         this.robot = new Robot();
+    }
+
+    public Rectangle getAntiIdleRect() {
+        return antiIdleRect;
     }
 
     public void clickWithinGame(Point p) {
@@ -38,6 +42,17 @@ public class Game {
     public void clickWithinGameWithUiUpdateDelay(int x, int y) {
         clickWithinGame(x, y);
         waitMs(60);
+    }
+
+    public void rightClickWithinGameWithUiUpdateDelay(int x, int y) {
+        rightClickWithinGame(x, y);
+        waitMs(60);
+    }
+
+    private void rightClickWithinGame(int x, int y) {
+        robot.mouseMove(antiIdleRect.x + x, antiIdleRect.y + y);
+        robot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
+        robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
     }
 
     public void holdLeftArrowKey() {

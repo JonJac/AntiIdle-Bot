@@ -8,9 +8,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.*;
 import java.util.List;
-import java.util.Stack;
-import java.util.UUID;
 
 import static idlebot.arcade.balance.BalanceConstants.*;
 import static idlebot.arcade.balance.BalanceSquare.*;
@@ -18,9 +17,9 @@ import static java.awt.image.BufferedImage.TYPE_BYTE_BINARY;
 
 public class BalancePlayer {
     private Game game;
-    private int waitAfterKeyPressMs = 40;
+    private int waitAfterKeyPressMs = 20;
     private int waitBeforeDetectingMs = 25;
-    private int blockCountBeforeForceEndingGame = 720;
+    private int blockCountBeforeForceEndingGame = 680;
     private final int nextSquareScreenShotWidth = 35;
     private int[] laneDepth = new int[3];
 
@@ -78,8 +77,7 @@ public class BalancePlayer {
                 playLane3(lane3, nextSquare);
             } else {
                 //Unknown ends up here
-                int minIndex = indexOfLaneWithFewestSquaresThatDoesNotHavePurpleOnTop(lanes);
-                //System.out.println("Choosing min lane: " + minIndex + " with size = " + lanes.get(minIndex).size());
+                int minIndex = indexOfLaneWithFewestSquaresThatDoesNotHavePurpleOnTop_UseLaneDepthWhenEqual(lanes);
                 if (minIndex == 0) {
                     playLane1(lane1, nextSquare);
                 } else if (minIndex == 1) {
@@ -89,9 +87,22 @@ public class BalancePlayer {
                 }
             }
 
+            if ((count & 0b00000000000000000000000000001111) == 0) { //every 16th nextSquare
+                updateLaneDepth(LANE_1_X);
+                updateLaneDepth(LANE_2_X);
+                updateLaneDepth(LANE_3_X);
+
+/*                if(count > 1500 && theDeepestLaneIsTheLightest(lanes)){
+                    System.out.println("wain as theDeepestLaneIsTheLightest");
+                    game.waitMs(500);
+                }*/
+            }
+
             //The state is still imperfect. The state here often has less blocks than in real game. One can use Legend difficulty and the stuff below to try and debug it.
-/*            String state = "State: Lanes: " + lane1.size() + "," + lane2.size() + "," + lane3.size() + ", " + lane1 + ", " + lane2 + ", " + lane3;
-            System.out.println(state);*/
+            String state = "State: Depth: " + Arrays.toString(laneDepth) + ", Lanes: " + lane1.size() + "," + lane2.size() + "," + lane3.size() + ", " + lane1 + ", " + lane2 + ", " + lane3;
+            //System.out.println(state);
+
+
 /*
             int lane1Height = detectAmountOfSquaresInLane(LANE_1_X);
             if(lane1.size() != lane1Height){
@@ -120,6 +131,31 @@ public class BalancePlayer {
         }
 
         return count;
+    }
+
+    private boolean theDeepestLaneIsTheLightest(List<Stack<BalanceSquare>> lanes) {
+        int deepestLane = -1, deepestMax = Integer.MIN_VALUE, lightestLane = -2, lightestMin = Integer.MAX_VALUE;
+        for (int i = 0; i < lanes.size(); i++) {
+            if (lanes.get(i).size() < lightestMin) {
+                lightestLane = i;
+                lightestMin = lanes.get(i).size();
+            } else if (lanes.get(i).size() == lightestMin) { //forces us to find the exclusive lightest
+                lightestLane = -2;
+            }
+        }
+
+        for (int i = 0; i < laneDepth.length; i++) {
+            if (laneDepth[i] > deepestMax) { //|| (laneDepth[i] == deepestMax && lanes.get(i).size() > lanes.get(lightestLane).size())
+                deepestLane = i;
+                deepestMax = laneDepth[i];
+            }
+        }
+
+        boolean result = deepestLane == lightestLane && laneDepth[deepestLane] > 245;
+        if (result) {
+            System.out.println("Lane " + deepestLane + " was determined to be the deepest and the lightest: " + deepestMax + ", " + lightestMin);
+        }
+        return result;
     }
 
     private boolean hasSameSquareOnTop(Stack<BalanceSquare> lane, BalanceSquare nextSquare, int amount) {
@@ -171,8 +207,9 @@ public class BalancePlayer {
         }
     }
 
-    public static int indexOfLaneWithFewestSquaresThatDoesNotHavePurpleOnTop(List<Stack<BalanceSquare>> list) {
+    public int indexOfLaneWithFewestSquaresThatDoesNotHavePurpleOnTop_UseLaneDepthWhenEqual(List<Stack<BalanceSquare>> list) {
         int i = 0, minIndex = -1, minimum = Integer.MAX_VALUE;
+        int[] sizes = new int[]{10, 10, 10};
         for (Stack<BalanceSquare> lane : list) {
             if (lane.size() > 0 && lane.peek() == Purple) {
                 i++;
@@ -182,8 +219,29 @@ public class BalancePlayer {
                 minimum = lane.size();
                 minIndex = i;
             }
+            sizes[i] = lane.size();
             i++;
         }
+
+        //if equal squares, pick the lanes highest up
+        ArrayList<Integer> lowest = new ArrayList<>();
+        for (int k = 0; k < sizes.length; k++) {
+            if (sizes[k] == minimum) {
+                lowest.add(k);
+            }
+        }
+        if (lowest.size() > 1) {
+            int highestLane = Integer.MAX_VALUE;
+            for (Integer index : lowest) {
+                if (laneDepth[index] < highestLane) {
+                    highestLane = laneDepth[index];
+                    minIndex = index;
+                }
+            }
+        } else {
+            minIndex = lowest.get(0);
+        }
+
         //System.out.println("Index " + minIndex + " won. Lanes: " + list.get(0).size() + "," + list.get(1).size() + "," + list.get(2).size());
         return minIndex;
     }
@@ -207,6 +265,17 @@ public class BalancePlayer {
     }
 
 
+    private void updateLaneDepth(int laneX) {
+        BufferedImage bufferedImage = game.screenShot(new Rectangle(laneX - 8, LANE_WINDOW_Y, 42, LANE_WINDOW_HEIGHT));
+
+        int blackCount = LANE_WINDOW_HEIGHT - 1;
+        while (bwLaneSquareMapping(2, blackCount, bufferedImage) == black) {
+            blackCount--;
+        }
+        laneDepth[laneMap.get(laneX)] = blackCount;
+    }
+
+
     private BalanceSquare detectUnknownWithSymbol(int laneX) {
 
         BufferedImage bufferedImage = game.screenShot(new Rectangle(laneX - 8, LANE_WINDOW_Y, 42, LANE_WINDOW_HEIGHT));
@@ -219,7 +288,7 @@ public class BalancePlayer {
         while (bwLaneSquareMapping(21, whiteCount, bufferedImage) == white) {
             whiteCount++;
         }
-        laneDepth[laneMap.get(laneX)] = whiteCount;
+        //laneDepth[laneMap.get(laneX)] = whiteCount;
 
         int blackCount = whiteCount;
         while (bwLaneSquareMapping(21, blackCount, bufferedImage) == black) {
